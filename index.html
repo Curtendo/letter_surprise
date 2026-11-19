@@ -1,0 +1,2098 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Letter Surprise</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: one projector-sized night stage with the action button on it, and a quiet settings tray underneath. Single dark look on purpose: the stage is a lit set. */
+:root{
+  --ink:#140f2e;
+  --night:#1d1650;
+  --glow:#3a2f9a;
+  --paper:#fff6e4;
+  --spark:#ffc933;
+  --spark-deep:#b8860b;
+  --muted:#aaa3dc;
+  --line:rgba(255,246,228,.18);
+  --panel:#1a1443;
+  --f-display:'Fredoka','Trebuchet MS','Segoe UI',system-ui,sans-serif;
+  --f-body:'Nunito','Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--ink);
+  color:var(--paper);
+  font-family:var(--f-body);
+  font-size:16px;
+  padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.app{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.top h1{font-family:var(--f-display);font-weight:700;font-size:28px;margin:0;letter-spacing:.2px;text-wrap:balance}
+.top p{margin:0;color:var(--muted);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+
+.stagewrap{border-radius:22px}
+.stage{
+  position:relative;width:100%;aspect-ratio:16/10;border-radius:22px;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 38%,var(--glow) 0%,var(--night) 52%,#0f0b2b 100%);
+  box-shadow:0 0 0 3px rgba(255,246,228,.12),0 18px 50px rgba(0,0,0,.45);
+  cursor:default;
+}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stagewrap:fullscreen{display:grid;place-items:center;background:var(--ink);border-radius:0}
+.stagewrap:fullscreen .stage{width:min(100vw,160vh);border-radius:0}
+.stagewrap:-webkit-full-screen{display:grid;place-items:center;background:var(--ink);border-radius:0}
+.stagewrap:-webkit-full-screen .stage{width:min(100vw,160vh);border-radius:0}
+
+.intro{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:16px 16px 84px}
+.intro h2{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,6.2vw,68px);margin:0;line-height:1.02;text-wrap:balance}
+.intro p{margin:0;font-weight:800;font-size:clamp(15px,2.2vw,22px);color:var(--muted);max-width:30ch;text-wrap:balance}
+.intro .row{display:flex;gap:clamp(4px,1.4vw,14px);justify-content:center;flex-wrap:wrap}
+.intro .row svg{width:clamp(34px,7.5vw,74px);height:auto;animation:bob 1.8s ease-in-out infinite}
+.intro .row svg:nth-child(2n){animation-delay:-.6s}
+.intro .row svg:nth-child(3n){animation-delay:-1.1s}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+
+.go{
+  position:absolute;right:16px;bottom:16px;
+  font-family:var(--f-display);font-weight:700;font-size:clamp(17px,2.4vw,24px);
+  background:var(--spark);color:#2a1d00;border:0;border-radius:999px;
+  padding:12px 28px;min-height:48px;cursor:pointer;
+  box-shadow:0 6px 0 var(--spark-deep),0 12px 24px rgba(0,0,0,.35);
+}
+.go:active{transform:translateY(4px);box-shadow:0 2px 0 var(--spark-deep)}
+.fsbtn{
+  position:absolute;left:12px;top:12px;width:40px;height:40px;border-radius:12px;
+  background:rgba(20,15,46,.55);color:var(--paper);border:2px solid var(--line);
+  font-size:18px;cursor:pointer;display:grid;place-items:center;
+}
+.answer{
+  position:absolute;left:50%;bottom:16px;transform:translateX(-50%);
+  display:flex;align-items:center;gap:12px;
+  background:var(--paper);color:var(--ink);border-radius:999px;
+  padding:8px 26px 8px 12px;font-family:var(--f-display);font-weight:700;font-size:clamp(20px,3vw,34px);
+  white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4);
+}
+.answer i{width:30px;height:30px;border-radius:50%;border:3px solid var(--ink);display:block}
+button:focus-visible,select:focus-visible,input:focus-visible+span{outline:3px solid var(--spark);outline-offset:3px}
+
+.cap{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-family:var(--f-display);font-weight:700;font-size:clamp(15px,2.4vw,26px);color:var(--paper);background:rgba(20,15,46,.6);border:2px solid var(--line);border-radius:999px;padding:6px 20px;white-space:nowrap;max-width:calc(100% - 120px);overflow:hidden;text-overflow:ellipsis}
+.again{position:absolute;right:12px;top:12px;font-family:var(--f-display);font-weight:700;font-size:16px;background:rgba(20,15,46,.55);color:var(--paper);border:2px solid var(--line);border-radius:999px;padding:8px 16px;min-height:40px;cursor:pointer}
+.tray{
+  background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:18px;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px;
+}
+.tray section{min-width:0}
+.tray h3{margin:0 0 10px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.tray .wide{grid-column:1/-1}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  display:inline-flex;align-items:center;gap:8px;font-family:var(--f-body);font-weight:800;font-size:14px;
+  color:var(--paper);background:transparent;border:2px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;
+  text-transform:capitalize;
+}
+.chip.ltr{text-transform:none;font-family:var(--f-display);font-weight:700;font-size:22px;min-width:46px;justify-content:center;padding:2px 12px;line-height:1.3}
+.chip[aria-pressed="true"]{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.chip i{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink);display:block}
+.chip[aria-pressed="false"] i{opacity:.55;border-color:var(--paper)}
+.opts{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
+.opts label{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
+.opts select{
+  font:inherit;font-weight:700;background:var(--ink);color:var(--paper);
+  border:2px solid var(--line);border-radius:10px;padding:5px 8px;
+}
+.opts input[type=checkbox]{width:20px;height:20px;accent-color:var(--spark)}
+.answer{font-family:Arial,Helvetica,sans-serif;font-size:clamp(28px,5vw,56px)}
+.hint{margin:0;color:var(--muted);font-size:13px;font-weight:700}
+
+@media (max-width:640px){
+  .stage{aspect-ratio:4/5}
+  .go{right:auto;left:50%;transform:translateX(-50%);bottom:14px}
+  .go:active{transform:translateX(-50%) translateY(4px)}
+  .answer{bottom:78px}
+  .tray{grid-template-columns:minmax(0,1fr)}
+  .intro{padding-bottom:96px}
+}
+@media (prefers-reduced-motion:reduce){.intro .row svg{animation:none}}
+</style>
+
+<main class="app">
+  <header class="top">
+    <h1>Letter Surprise</h1>
+    <p id="status">26 letters · shout it out!</p>
+  </header>
+
+  <div class="stagewrap" id="stagewrap">
+    <div class="stage" id="stage">
+      <svg id="svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Surprise stage">
+        <defs>
+          <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fff9c4" stop-opacity=".85"/>
+            <stop offset="1" stop-color="#fff9c4" stop-opacity=".06"/>
+          </linearGradient>
+          <radialGradient id="halo"><stop offset="0" stop-color="#fff6bf" stop-opacity=".9"/><stop offset="1" stop-color="#fff6bf" stop-opacity="0"/></radialGradient>
+          <clipPath id="peekClip"><rect x="-10" y="-300" width="820" height="632"/></clipPath>
+          <clipPath id="eggTop"><polygon points="-130,-150 130,-150 130,12 104,-10 78,14 52,-10 26,14 0,-10 -26,14 -52,-10 -78,14 -104,-10 -130,12"/></clipPath>
+          <clipPath id="eggBot"><polygon points="-130,150 130,150 130,12 104,-10 78,14 52,-10 26,14 0,-10 -26,14 -52,-10 -78,14 -104,-10 -130,12"/></clipPath>
+        </defs>
+        <g id="back"></g>
+        <g id="world"></g>
+      </svg>
+      <div class="intro" id="intro">
+        <div class="row" id="introRow" aria-hidden="true"></div>
+        <h2>Letter Surprise</h2>
+        <p>Watch closely. When it pops out, shout the lowercase letter!</p>
+      </div>
+      <div class="cap" id="cap" hidden></div>
+      <div class="answer" id="answer" hidden><i></i><span></span></div>
+      <button class="again" id="again" type="button" hidden>Replay</button>
+      <button class="fsbtn" id="fs" type="button" aria-label="Full screen" title="Full screen">&#x26F6;</button>
+      <button class="go" id="go" type="button">Start</button>
+    </div>
+  </div>
+
+  <div class="tray">
+    <section class="wide">
+      <h3>Letters in the deck</h3>
+      <div class="chips" id="presetChips" style="margin-bottom:10px"></div>
+      <div class="chips" id="shapeChips"></div>
+    </section>
+    <section class="wide">
+      <h3>Play settings</h3>
+      <div class="opts">
+        <label for="suspense">Suspense
+          <select id="suspense">
+            <option value="1">Short</option>
+            <option value="1.6" selected>Normal</option>
+            <option value="2.2">Long</option>
+          </select>
+        </label>
+        <label for="showWord"><input type="checkbox" id="showWord" checked> Show the answer word</label>
+        <label for="auto"><input type="checkbox" id="auto"> Auto-play, next one after
+          <select id="autoDelay" aria-label="Auto-play delay">
+            <option value="5">5 s</option>
+            <option value="7" selected>7 s</option>
+            <option value="10">10 s</option>
+            <option value="15">15 s</option>
+          </select>
+        </label>
+        <label for="guess">Guess time
+          <select id="guess"><option value="0">Off</option><option value="3">3 s</option><option value="5" selected>5 s</option><option value="8">8 s</option></select>
+        </label>
+        <label for="sound"><input type="checkbox" id="sound" checked> Sound</label>
+      </div>
+      <p class="hint" style="margin-top:12px">Every letter is dealt once, in random order, so a full game is one surprise per letter (26 by default). After the last one, a finish screen shows all the letters. Space bar = next surprise. Replay (top right) shows the same one again. Tap the stage after the reveal to show or hide the answer letter. Use the letter buttons above to play with fewer letters.</p>
+    </section>
+  </div>
+</main>
+
+<script>
+(function(){
+'use strict';
+var NS='http://www.w3.org/2000/svg';
+var $=function(s){return document.querySelector(s)};
+var world=$('#world'), back=$('#back'), go=$('#go'), intro=$('#intro'), answer=$('#answer'), again=$('#again'), statusEl=$('#status');
+var rnd=function(a,b){return a+Math.random()*(b-a)};
+var pick=function(a){return a[Math.floor(Math.random()*a.length)]};
+var cap=function(s){return s.charAt(0).toUpperCase()+s.slice(1)};
+var INK='#140f2e';
+var REDUCED=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- letters and colors (add a color here and it joins the deck) ---------- */
+var COLORS={white:'#ffffff',green:'#2fc25b',yellow:'#ffd21f',pink:'#ff7fb8',red:'#ec3a30',blue:'#2f72f0'};
+var LETTERS='abcdefghijklmnopqrstuvwxyz'.split('');
+var LETTER_FONT='Arial,Helvetica,Verdana,sans-serif';
+var LETTER_HEX='#ffd21f';
+var BASE={};
+(function(){
+  var ctx=null;
+  try{ctx=document.createElement('canvas').getContext('2d'); ctx.font='bold 150px '+LETTER_FONT}catch(e){ctx=null}
+  LETTERS.forEach(function(ch){
+    var y=39;
+    if('bdfhiklt'.indexOf(ch)>-1)y=54; else if('gpqy'.indexOf(ch)>-1)y=23; else if(ch==='j')y=38;
+    try{var m=ctx.measureText(ch); if(m&&m.actualBoundingBoxAscent!=null&&m.actualBoundingBoxAscent>0)y=(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2}catch(e){}
+    BASE[ch]=y;
+  });
+})();
+function letterSvg(ch){
+  return '<text y="'+BASE[ch].toFixed(1)+'" text-anchor="middle" font-family="'+LETTER_FONT+'" font-weight="700" font-size="150">'+ch+'</text>';
+}
+var SHAPES={}; LETTERS.forEach(function(ch){SHAPES[ch]=letterSvg(ch)});
+function stickerRaw(svg,hex){
+  return '<g fill="#fff" stroke="#fff" stroke-width="15" stroke-linejoin="round">'+svg+'</g>'+
+         '<g fill="'+hex+'" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round">'+svg+'</g>';
+}
+function sticker(shape,hex){return stickerRaw(SHAPES[shape],hex)}
+
+/* ---------- sound ---------- */
+var soundOn=true, ac=null;
+function audio(){try{if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){ac=null}return ac}
+function tone(f,d,type,v,to,delay){
+  if(!soundOn)return; var a=audio(); if(!a)return;
+  try{
+    var t=a.currentTime+(delay||0), o=a.createOscillator(), g=a.createGain();
+    o.type=type||'sine'; o.frequency.setValueAtTime(f,t);
+    if(to)o.frequency.exponentialRampToValueAtTime(to,t+d);
+    g.gain.setValueAtTime(v||.12,t); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+d+.03);
+  }catch(e){}
+}
+var sfx={
+  rumble:function(){tone(70,.9,'sawtooth',.07,38)},
+  tick:function(){tone(950,.05,'square',.04)},
+  squeak:function(){tone(650,.2,'sine',.09,1200)},
+  whoosh:function(){tone(300,.5,'triangle',.06,900)},
+  bang:function(){tone(220,.18,'sawtooth',.2,40)},
+  pop:function(){tone(420,.12,'triangle',.2,900);tone(660,.25,'triangle',.14,990,.08);tone(880,.35,'triangle',.12,1320,.16)},
+  don:function(){tone(120,.28,'sine',.3,50)},
+  ding:function(){tone(1320,.45,'sine',.1)},
+  boing:function(){tone(180,.3,'sine',.14,520)}
+};
+
+/* ---------- animation plumbing ---------- */
+var st={shapes:new Set(Object.keys(SHAPES)),colors:new Set(Object.keys(COLORS)),deck:[],last:null,lastScene:-1,bag:[],cd:null,rid:0,round:0,S:1.6,auto:false,autoDelay:7,showWord:true,revealed:false,cur:null,phase:null,warmed:false,warmOn:true,sayColor:true,guessT:5,guessSkip:false};
+var capEl=$('#cap');
+var live=new Set(), timers=new Set(), autoT=null, ansT=null;
+function cancelAll(){
+  live.forEach(function(a){try{a.cancel()}catch(e){}}); live.clear();
+  timers.forEach(function(t){clearInterval(t)}); timers.clear();
+  clearTimeout(autoT); clearTimeout(ansT);
+}
+function wait(ms){var id=st.rid;return new Promise(function(res,rej){setTimeout(function(){id===st.rid?res():rej(new Error('stale'))},ms*st.S)})}
+function every(ms,fn){var t=setInterval(fn,ms*st.S);timers.add(t);return function(){clearInterval(t);timers.delete(t)}}
+function anim(el,kf,o){
+  var a=el.animate(kf,{duration:o.d*(o.raw?1:st.S),easing:o.e||'ease-in-out',fill:'forwards',iterations:o.n||1,delay:o.delay||0});
+  live.add(a);
+  return a.finished.then(function(){live.delete(a)});
+}
+function fire(el,kf,o){return anim(el,kf,o).catch(function(){})}
+function mk(x,y,html,parent){
+  var o=document.createElementNS(NS,'g'); o.setAttribute('transform','translate('+x+' '+y+')');
+  var i=document.createElementNS(NS,'g'); i.innerHTML=html; o.appendChild(i); (parent||world).appendChild(o); return i;
+}
+function shake(el,amp,dur,rot,bx,by){
+  bx=bx||0; by=by||0; rot=rot==null?amp/5:rot;
+  el.getAnimations().forEach(function(a){a.cancel()});
+  var T=function(x,y,r){return {transform:'translate('+(bx+x)+'px,'+(by+y)+'px) rotate('+r+'deg)'}};
+  fire(el,[T(0,0,0),T(amp,-amp/3,rot),T(-amp,amp/3,-rot),T(0,0,0)],{d:dur,n:Infinity,e:'linear',raw:true});
+}
+function shards(x,y,col,n,spread){
+  for(var i=0;i<n;i++){
+    var a=rnd(0,6.283), r=rnd(spread*.5,spread);
+    var s=mk(x,y,'<polygon points="0,-9 12,6 -10,8" fill="'+col+'" stroke="'+INK+'" stroke-width="2" stroke-linejoin="round"/>');
+    fire(s,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate('+(Math.cos(a)*r)+'px,'+(Math.sin(a)*r+60)+'px) rotate('+rnd(-540,540)+'deg)',opacity:0}],{d:rnd(600,1000),e:'cubic-bezier(.1,.6,.3,1)',raw:true});
+  }
+}
+function puff(x,y,size){
+  var n=mk(x,y,'<circle r="'+size+'" fill="#eceaff" opacity=".85"/>');
+  fire(n,[{transform:'translate(0px,0px) scale(.4)',opacity:.9},{transform:'translate('+rnd(-34,34)+'px,'+(-rnd(80,150))+'px) scale(1.7)',opacity:0}],{d:rnd(1000,1500),e:'ease-out',raw:true});
+}
+function floor(y,rx){mk(400,y,'<ellipse rx="'+rx+'" ry="20" fill="#000" opacity=".3"/>')}
+
+/* ---------- the reveal ---------- */
+async function reveal(c,fx,fy){
+  sfx.pop();
+  var rays=mk(400,252,'<g fill="#fff" opacity=".12">'+Array.from({length:12},function(_,i){return '<polygon points="0,0 -18,-340 18,-340" transform="rotate('+(i*30)+')"/>'}).join('')+'</g>');
+  if(!REDUCED)fire(rays,[{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{d:26000,n:Infinity,e:'linear',raw:true});
+  var flash=mk(400,252,'<circle r="30" fill="#fff"/>');
+  fire(flash,[{transform:'scale(.2)',opacity:.95},{transform:'scale(15)',opacity:0}],{d:560,e:'ease-out',raw:true});
+  var hexes=Object.keys(COLORS).map(function(k){return COLORS[k]});
+  for(var i=0;i<26;i++){
+    var a=rnd(0,6.283), r=rnd(170,350), col=pick(hexes);
+    var p=mk(400,252,Math.random()<.5?'<rect x="-7" y="-4" width="14" height="8" rx="2" fill="'+col+'" stroke="'+INK+'" stroke-width="1.5"/>':'<circle r="6" fill="'+col+'" stroke="'+INK+'" stroke-width="1.5"/>');
+    fire(p,[{transform:'translate(0px,0px) rotate(0deg) scale(.5)',opacity:1},{transform:'translate('+(Math.cos(a)*r)+'px,'+(Math.sin(a)*r*.8)+'px) rotate('+rnd(-600,600)+'deg) scale(1)',opacity:0}],{d:rnd(800,1300),e:'cubic-bezier(.1,.7,.3,1)',raw:true});
+  }
+  var s=mk(400,252,sticker(c.s,c.hex));
+  var dx=(fx==null?400:fx)-400, dy=(fy==null?252:fy)-252;
+  await anim(s,[{transform:'translate('+dx+'px,'+dy+'px) scale(.2) rotate(-40deg)'},{transform:'translate(0px,0px) scale(2.4) rotate(0deg)'}],{d:560,e:'cubic-bezier(.2,1.5,.4,1)',raw:true});
+  if(!REDUCED)fire(s,[{transform:'translate(0px,0px) scale(2.4) rotate(-2deg)'},{transform:'translate(0px,-9px) scale(2.4) rotate(2deg)'},{transform:'translate(0px,0px) scale(2.4) rotate(-2deg)'}],{d:1500,n:Infinity,raw:true});
+  var id=st.rid;
+  st.revealed=true; st.cur=c; go.textContent=st.deck.length?'Next surprise':'Finish'; again.hidden=false;
+  if(st.showWord)ansT=setTimeout(function(){if(id===st.rid)showAnswer(c)},3500);
+  if(st.auto)autoT=setTimeout(function(){if(id===st.rid)play()},st.autoDelay*1000);
+}
+function showLabel(text,hex){
+  var i=answer.querySelector('i');
+  if(hex){i.style.display='block';i.style.background=hex;answer.style.paddingLeft=''}
+  else{i.style.display='none';answer.style.paddingLeft='26px'}
+  answer.querySelector('span').textContent=text; answer.hidden=false;
+}
+function showAnswer(c){showLabel(c.s,null)}
+
+/* ---------- scene 1: the boiling crate ---------- */
+async function crateScene(c){
+  floor(418,190);
+  var bx=mk(400,300,
+    '<rect x="-120" y="-30" width="240" height="140" rx="6" fill="#b87a3c" stroke="'+INK+'" stroke-width="5"/>'+
+    '<g stroke="#8b5a28" stroke-width="5"><line x1="-120" y1="16" x2="120" y2="16"/><line x1="-120" y1="62" x2="120" y2="62"/></g>'+
+    '<rect x="-86" y="-30" width="22" height="140" fill="#8b5a28" opacity=".55"/><rect x="64" y="-30" width="22" height="140" fill="#8b5a28" opacity=".55"/>'+
+    '<g fill="#3b2a1a"><circle cx="-75" cy="2" r="4"/><circle cx="75" cy="2" r="4"/><circle cx="-75" cy="92" r="4"/><circle cx="75" cy="92" r="4"/></g>');
+  var glow=mk(400,300,
+    '<ellipse cx="0" cy="-30" rx="125" ry="12" fill="#fff6bf"/>'+
+    '<g fill="#fff6bf" opacity=".55"><polygon points="-110,-34 -70,-34 -100,-230 -190,-230"/><polygon points="-20,-34 20,-34 40,-260 -40,-260"/><polygon points="70,-34 110,-34 190,-230 100,-230"/></g>');
+  glow.style.opacity=0;
+  var ld=mk(400,300,
+    '<rect x="-132" y="-64" width="264" height="36" rx="8" fill="#d79a52" stroke="'+INK+'" stroke-width="5"/>'+
+    '<line x1="-90" y1="-56" x2="-90" y2="-36" stroke="#8b5a28" stroke-width="4"/><line x1="90" y1="-56" x2="90" y2="-36" stroke="#8b5a28" stroke-width="4"/>');
+  var spawn=function(){puff(400+rnd(-80,80),238,rnd(10,17))};
+  shake(bx,1.5,260); shake(ld,2,260);
+  var stop=every(300,spawn); sfx.rumble();
+  await wait(1500);
+  shake(bx,4,150); shake(ld,6,120,3); sfx.rumble();
+  fire(glow,[{opacity:0},{opacity:.5}],{d:1000});
+  stop(); stop=every(160,spawn);
+  await wait(1500);
+  shake(bx,8,90); shake(ld,12,80,5); sfx.rumble();
+  fire(glow,[{opacity:.5},{opacity:1}],{d:900});
+  stop(); stop=every(80,spawn);
+  await wait(1100);
+  stop(); sfx.bang();
+  fire(ld,[{transform:'translate(0px,0px) rotate(0deg)'},{transform:'translate(130px,-400px) rotate(430deg)'}],{d:750,e:'ease-in',raw:true});
+  fire(bx,[{transform:'scale(1,1)'},{transform:'scale(1.12,.88)',offset:.3},{transform:'scale(1,1)'}],{d:400,raw:true});
+  fire(glow,[{opacity:1},{opacity:0}],{d:500,raw:true});
+  await reveal(c,400,290);
+}
+
+/* ---------- scene 2: the sneaky helicopter ---------- */
+var PARCEL='<rect x="-38" y="-32" width="76" height="64" rx="5" fill="#c58b4e" stroke="'+INK+'" stroke-width="4"/>'+
+  '<rect x="-7" y="-32" width="14" height="64" fill="#f1d7a0" opacity=".9"/><rect x="-38" y="-6" width="76" height="12" fill="#f1d7a0" opacity=".9"/>'+
+  '<circle r="17" fill="#fff" stroke="'+INK+'" stroke-width="3"/>'+
+  '<text y="9" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="26" fill="'+INK+'">?</text>';
+async function heliScene(c){
+  [[130,90,1],[620,60,.8],[520,180,.6]].forEach(function(p){
+    var cl=mk(p[0],p[1],'<g fill="#fff" opacity=".14"><ellipse rx="70" ry="22"/><ellipse cx="-30" cy="-14" rx="36" ry="20"/><ellipse cx="26" cy="-18" rx="40" ry="22"/></g>');
+    fire(cl,[{transform:'translate(0px,0px) scale('+p[2]+')'},{transform:'translate(-70px,0px) scale('+p[2]+')'}],{d:7000,e:'linear',raw:true});
+  });
+  floor(424,130);
+  var heli=mk(0,0,
+    '<g class="load"><line x1="0" y1="44" x2="0" y2="100" stroke="#fff" stroke-width="3" stroke-dasharray="5 4"/><g transform="translate(0 130)">'+PARCEL+'</g></g>'+
+    '<path d="M-40 52 H62 M-24 36 V52 M34 36 V52" stroke="#3a3470" stroke-width="5" fill="none" stroke-linecap="round"/>'+
+    '<polygon points="-50,-14 -140,-22 -140,-34 -128,-34 -50,10" fill="#c9d1ff" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/>'+
+    '<polygon points="-140,-22 -130,-62 -112,-62 -124,-24" fill="#c9d1ff" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/>'+
+    '<ellipse rx="66" ry="42" fill="#dfe6ff" stroke="'+INK+'" stroke-width="4"/>'+
+    '<path d="M12 -34 Q58 -32 62 -2 L12 -2 Z" fill="#2a2260"/>'+
+    '<rect x="-5" y="-62" width="10" height="22" fill="#3a3470"/>'+
+    '<g transform="translate(0 -64)"><g class="rotor"><rect x="-120" y="-4" width="240" height="8" rx="4" fill="#3a3470"/></g></g>'+
+    '<g transform="translate(-126 -50)"><g class="trotor"><rect x="-3" y="-18" width="6" height="36" rx="3" fill="#3a3470"/></g></g>');
+  fire(heli.querySelector('.rotor'),[{transform:'scaleX(1)'},{transform:'scaleX(.12)'},{transform:'scaleX(1)'}],{d:150,n:Infinity,e:'linear',raw:true});
+  fire(heli.querySelector('.trotor'),[{transform:'scaleY(1)'},{transform:'scaleY(.15)'},{transform:'scaleY(1)'}],{d:110,n:Infinity,e:'linear',raw:true});
+  sfx.whoosh();
+  await anim(heli,[{transform:'translate(-240px,70px) rotate(6deg)'},{transform:'translate(400px,108px) rotate(-4deg)'}],{d:1800,e:'cubic-bezier(.2,.6,.3,1)'});
+  await anim(heli,[{transform:'translate(400px,108px) rotate(-4deg)'},{transform:'translate(414px,100px) rotate(5deg)'},{transform:'translate(386px,112px) rotate(-5deg)'},{transform:'translate(400px,108px) rotate(0deg)'}],{d:520,n:2});
+  await wait(350);
+  heli.querySelector('.load').style.display='none';
+  var pcl=mk(400,238,
+    '<g class="chute"><path d="M-70 -90 A70 56 0 0 1 70 -90 Z" fill="#ff9f43" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/>'+
+    '<path d="M-23 -90 Q-18 -140 0 -146 Q18 -140 23 -90 Z" fill="#ffe0b3"/>'+
+    '<g stroke="#fff" stroke-width="2.5"><line x1="-70" y1="-90" x2="-30" y2="-32"/><line x1="70" y1="-90" x2="30" y2="-32"/><line x1="-23" y1="-90" x2="-10" y2="-32"/><line x1="23" y1="-90" x2="10" y2="-32"/></g></g>'+PARCEL);
+  var chute=pcl.querySelector('.chute'); chute.style.transformOrigin='0px -32px'; chute.style.opacity=0;
+  fire(heli,[{transform:'translate(400px,108px)'},{transform:'translate(400px,66px)'}],{d:400});
+  await anim(pcl,[{transform:'translate(0px,0px) rotate(0deg)'},{transform:'translate(0px,70px) rotate(12deg)'}],{d:450,e:'ease-in'});
+  sfx.whoosh();
+  fire(chute,[{opacity:0,transform:'scale(.1)'},{opacity:1,transform:'scale(1.12)'},{opacity:1,transform:'scale(1)'}],{d:420});
+  await anim(pcl,[{transform:'translate(0px,70px) rotate(12deg)'},{transform:'translate(0px,150px) rotate(-4deg)'}],{d:1150,e:'cubic-bezier(.2,.8,.4,1)'});
+  fire(heli,[{transform:'translate(400px,66px)'},{transform:'translate(1050px,0px) rotate(8deg)'}],{d:1500,e:'ease-in'});
+  fire(chute,[{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(1,.2)'}],{d:350});
+  await anim(pcl,[{transform:'translate(0px,150px) rotate(-4deg) scale(1,1)'},{transform:'translate(0px,150px) rotate(0deg) scale(1.14,.86)'},{transform:'translate(0px,150px) rotate(0deg) scale(1,1)'}],{d:300});
+  await wait(350);
+  sfx.tick(); shake(pcl,3,110,2,0,150);
+  await wait(800);
+  sfx.tick(); shake(pcl,8,80,5,0,150);
+  await wait(650);
+  sfx.bang(); shards(400,388,'#c58b4e',12,230);
+  fire(pcl,[{opacity:1},{opacity:0}],{d:80,raw:true});
+  await reveal(c,400,380);
+}
+
+/* ---------- scene 3: the wobbling egg ---------- */
+async function eggScene(c){
+  floor(420,120);
+  var E='<path d="M0 -105 C55 -105 80 -35 80 15 C80 70 45 105 0 105 C-45 105 -80 70 -80 15 C-80 -35 -55 -105 0 -105 Z" fill="#f3ecd8" stroke="'+INK+'" stroke-width="5"/>'+
+        '<g fill="#d6c59a"><circle cx="-34" cy="-40" r="9"/><circle cx="30" cy="-62" r="6"/><circle cx="42" cy="-8" r="10"/><circle cx="-46" cy="30" r="7"/><circle cx="10" cy="40" r="11"/><circle cx="-10" cy="-74" r="5"/></g>';
+  var crack=function(d){return '<g opacity="0"><path d="'+d+'" stroke="#fff6bf" stroke-width="11" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="'+d+'" stroke="'+INK+'" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>'};
+  var egg=mk(400,290,
+    '<g class="bot" clip-path="url(#eggBot)">'+E+'</g><g class="top" clip-path="url(#eggTop)">'+E+'</g>'+
+    '<g class="cr1">'+crack('M-12 -62 L6 -42 L-8 -22 L10 0 L-4 22')+'</g>'+
+    '<g class="cr2">'+crack('M10 0 L40 -10 L56 12')+'</g>'+
+    '<g class="cr3">'+crack('M-8 -22 L-44 -12 L-62 16')+'</g>');
+  egg.style.transformOrigin='0px 105px';
+  var wob=function(d,ms,n){return anim(egg,[{transform:'rotate(0deg)'},{transform:'rotate('+(-d)+'deg)'},{transform:'rotate('+d+'deg)'},{transform:'rotate(0deg)'}],{d:ms,n:n,e:'ease-in-out'})};
+  var show=function(sel){var g=egg.querySelector(sel).firstChild;fire(g,[{opacity:0},{opacity:1}],{d:70,raw:true});sfx.tick()};
+  await wait(500);
+  await wob(4,700,2);
+  show('.cr1');
+  await wob(7,520,2);
+  show('.cr2'); await wait(260); show('.cr3');
+  sfx.rumble();
+  shake(egg,3,90,5);
+  await wait(1000);
+  egg.getAnimations().forEach(function(a){a.cancel()});
+  sfx.bang();
+  var top=egg.querySelector('.top'), bot=egg.querySelector('.bot');
+  fire(top,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(-70px,-340px) rotate(-70deg)',opacity:0}],{d:750,e:'ease-in',raw:true});
+  fire(bot,[{transform:'translate(0px,0px)'},{transform:'translate(0px,10px) scale(1.08,.92)'}],{d:200,raw:true});
+  ['.cr1','.cr2','.cr3'].forEach(function(s){fire(egg.querySelector(s),[{opacity:1},{opacity:0}],{d:60,raw:true})});
+  shards(400,270,'#f3ecd8',12,260);
+  await reveal(c,400,270);
+}
+
+/* ---------- scene 4: UFO delivery ---------- */
+async function ufoScene(c){
+  floor(424,110);
+  var beam=mk(400,108,'<polygon points="-42,24 42,24 175,300 -175,300" fill="url(#beam)"/>');
+  beam.style.opacity=0;
+  var ufo=mk(0,0,
+    '<ellipse cy="-14" rx="38" ry="32" fill="#bfe9ff" opacity=".85" stroke="'+INK+'" stroke-width="4"/>'+
+    '<ellipse rx="104" ry="26" fill="#b7bfd9" stroke="'+INK+'" stroke-width="5"/>'+
+    '<g class="lights"><circle cx="-66" cy="4" r="7" fill="#ffe566"/><circle cx="-22" cy="12" r="7" fill="#ff9bd1"/><circle cx="22" cy="12" r="7" fill="#7ee7ff"/><circle cx="66" cy="4" r="7" fill="#b6ff8a"/></g>');
+  Array.prototype.forEach.call(ufo.querySelectorAll('.lights circle'),function(el,i){
+    fire(el,[{opacity:1},{opacity:.25},{opacity:1}],{d:420,n:Infinity,delay:i*110,raw:true});
+  });
+  sfx.whoosh();
+  await anim(ufo,[{transform:'translate(900px,-60px) rotate(12deg)',offset:0},{transform:'translate(240px,70px) rotate(-10deg)',offset:.5},{transform:'translate(520px,60px) rotate(8deg)',offset:.75},{transform:'translate(400px,108px) rotate(0deg)',offset:1}],{d:1900});
+  fire(beam,[{opacity:0},{opacity:.85}],{d:500});
+  await wait(500);
+  fire(beam,[{opacity:.85},{opacity:.55},{opacity:.85}],{d:260,n:Infinity,e:'linear',raw:true});
+  var pod=mk(400,170,
+    '<rect x="-3" y="-58" width="6" height="116" fill="#fff"/>'+
+    '<g class="pl"><path d="M0 -58 A46 58 0 0 0 0 58 Z" fill="#9aa3c7" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/><circle cx="-22" cy="-22" r="5" fill="#fff" opacity=".7"/><circle cx="-24" cy="22" r="5" fill="#fff" opacity=".7"/></g>'+
+    '<g class="pr"><path d="M0 -58 A46 58 0 0 1 0 58 Z" fill="#8791b8" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/><circle cx="22" cy="-22" r="5" fill="#fff" opacity=".6"/><circle cx="24" cy="22" r="5" fill="#fff" opacity=".6"/></g>');
+  var light=pod.firstChild; light.style.opacity=0;
+  sfx.rumble();
+  await anim(pod,[{transform:'translate(0px,0px) scale(.2) rotate(0deg)',offset:0},{transform:'translate(0px,40px) scale(1) rotate(-8deg)',offset:.2},{transform:'translate(0px,120px) scale(1) rotate(8deg)',offset:.6},{transform:'translate(0px,190px) scale(1) rotate(0deg)',offset:1}],{d:2600});
+  fire(beam,[{opacity:.85},{opacity:0}],{d:350,raw:true});
+  fire(ufo,[{transform:'translate(400px,108px) rotate(0deg)'},{transform:'translate(1050px,-130px) rotate(-14deg)'}],{d:650,e:'ease-in',raw:true});
+  sfx.whoosh();
+  await wait(300);
+  sfx.tick(); shake(pod,3,100,3,0,190);
+  fire(light,[{opacity:0},{opacity:.6}],{d:700});
+  await wait(750);
+  sfx.tick(); shake(pod,7,80,5,0,190);
+  fire(light,[{opacity:.6},{opacity:1}],{d:500});
+  await wait(550);
+  pod.getAnimations().forEach(function(a){a.cancel()});
+  pod.style.transform='translate(0px,190px)';
+  sfx.bang();
+  fire(pod.querySelector('.pl'),[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(-90px,20px) rotate(-35deg)',opacity:0}],{d:500,e:'ease-out',raw:true});
+  fire(pod.querySelector('.pr'),[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(90px,20px) rotate(35deg)',opacity:0}],{d:500,e:'ease-out',raw:true});
+  fire(light,[{opacity:1},{opacity:0}],{d:300,raw:true});
+  await reveal(c,400,360);
+}
+
+/* ---------- scene 5: the mystery balloon ---------- */
+async function balloonScene(c){
+  floor(424,100);
+  mk(0,0,'<path d="M246 410 Q310 450 392 358" stroke="#8a8fb0" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M246 410 Q310 450 392 358" stroke="'+INK+'" stroke-width="2" fill="none" stroke-dasharray="2 10" opacity=".4"/>');
+  var pump=mk(220,436,
+    '<ellipse cy="0" rx="64" ry="10" fill="#6a5ae0" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="-20" y="-130" width="40" height="130" rx="8" fill="#d9ecff" fill-opacity=".6" stroke="'+INK+'" stroke-width="4"/>'+
+    '<g class="hd"><rect x="-4" y="-190" width="8" height="70" fill="#d9dcec" stroke="'+INK+'" stroke-width="2.5"/><rect x="-36" y="-204" width="72" height="16" rx="8" fill="#ff9f43" stroke="'+INK+'" stroke-width="4"/></g>');
+  var hd=pump.querySelector('.hd');
+  var bal=mk(400,350,
+    '<g class="sh">'+
+    '<path d="M0 0 C-14 36 22 70 0 112" stroke="#e8e4ff" stroke-width="3" fill="none"/>'+
+    '<polygon points="-9,6 9,6 0,-6" fill="#aab3d4" stroke="'+INK+'" stroke-width="3" stroke-linejoin="round"/>'+
+    '<ellipse cy="-92" rx="72" ry="88" fill="#c6cdea" stroke="'+INK+'" stroke-width="5"/>'+
+    '<ellipse cx="-28" cy="-132" rx="13" ry="26" fill="#fff" opacity=".5" transform="rotate(20 -28 -132)"/>'+
+    '<circle cy="-92" r="27" fill="#fff" stroke="'+INK+'" stroke-width="4"/>'+
+    '<text y="-80" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="38" fill="'+INK+'">?</text>'+
+    '</g>');
+  var sh=bal.querySelector('.sh');
+  var levels=[.3,.5,.7,.9,1.1,1.3], prev=.3;
+  fire(bal,[{transform:'scale(.3)'},{transform:'scale(.3)'}],{d:10,raw:true});
+  await wait(400);
+  for(var i=0;i<levels.length;i++){
+    var nx=levels[i];
+    fire(hd,[{transform:'translate(0px,0px)'},{transform:'translate(0px,70px)'},{transform:'translate(0px,0px)'}],{d:340});
+    await anim(bal,[{transform:'scale('+prev+')'},{transform:'scale('+nx+')'}],{d:360-i*30,e:'ease-out'});
+    sfx.squeak();
+    await anim(bal,[{transform:'scale('+nx+')'},{transform:'scale('+(nx*1.05)+','+(nx*.95)+')'},{transform:'scale('+nx+')'}],{d:180,e:'ease-in-out'});
+    prev=nx;
+    await wait(300-i*35);
+  }
+  sfx.rumble();
+  shake(sh,3,70,3);
+  await anim(bal,[{transform:'scale(1.3)'},{transform:'scale(1.4)'}],{d:900,e:'ease-in'});
+  sfx.bang();
+  shards(400,230,'#c6cdea',16,300);
+  bal.parentNode.remove();
+  await reveal(c,400,230);
+}
+
+/* ---------- helpers for the new scenes ---------- */
+function sparks(x,y,n,r){
+  for(var i=0;i<n;i++){
+    var a=rnd(0,6.283), d=rnd(r*.35,r);
+    var s=mk(x,y,'<polygon points="0,-12 3,-3 12,0 3,3 0,12 -3,3 -12,0 -3,-3" fill="#fff6bf" stroke="'+INK+'" stroke-width="1.5" stroke-linejoin="round"/>');
+    fire(s,[{transform:'translate(0px,0px) scale(.3) rotate(0deg)',opacity:1},{transform:'translate('+(Math.cos(a)*d)+'px,'+(Math.sin(a)*d)+'px) scale('+rnd(.8,1.6)+') rotate('+rnd(-200,200)+'deg)',opacity:0}],{d:rnd(600,1000),e:'ease-out',raw:true});
+  }
+}
+function wob(el,tx,ty,s,amp,dur){
+  var T=function(x,r){return {transform:'translate('+(tx+x)+'px,'+ty+'px) scale('+s+') rotate('+r+'deg)'}};
+  fire(el,[T(0,0),T(amp,amp),T(-amp,-amp),T(0,0)],{d:dur,n:Infinity,e:'linear',raw:true});
+}
+function stopAnims(el){el.getAnimations().forEach(function(a){a.cancel()})}
+var NEU=['#c6cdea','#a58bff','#ff9f43','#e8e4ff'];
+function capHtml(col,r){
+  return '<circle r="'+r+'" fill="'+col+'" stroke="'+INK+'" stroke-width="3.5"/>'+
+    '<path d="M'+(-r)+' 0 A'+r+' '+r+' 0 0 1 '+r+' 0 Z" fill="#fff" opacity=".55"/>'+
+    '<line x1="'+(-r)+'" y1="0" x2="'+r+'" y2="0" stroke="'+INK+'" stroke-width="3"/>';
+}
+function halves(r){
+  return '<g class="t"><path d="M'+(-r)+' 0 A'+r+' '+r+' 0 0 1 '+r+' 0 Z" fill="#c6cdea" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/></g>'+
+    '<g class="b"><path d="M'+(-r)+' 0 A'+r+' '+r+' 0 0 0 '+r+' 0 Z" fill="#fff" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/></g>';
+}
+function popCap(hero,x,y,sc){
+  stopAnims(hero);
+  hero.style.transform='translate('+x+'px,'+y+'px) scale('+sc+')';
+  fire(hero.querySelector('.t'),[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(-80px,-130px) rotate(-120deg)',opacity:0}],{d:600,e:'ease-out',raw:true});
+  fire(hero.querySelector('.b'),[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(70px,40px) rotate(70deg)',opacity:0}],{d:500,e:'ease-out',raw:true});
+}
+
+/* ---------- scene 6: gachapon machine ---------- */
+async function gachaScene(c){
+  floor(450,150);
+  mk(0,0,'<rect x="292" y="292" width="216" height="150" rx="16" fill="#8b7bff" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="330" y="300" width="140" height="22" rx="8" fill="#6a5ae0" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="346" y="378" width="108" height="56" rx="10" fill="#1d1650" stroke="'+INK+'" stroke-width="4"/>');
+  var caps=[];
+  for(var i=0;i<9;i++)caps.push(mk(345+(i%3)*55+rnd(-6,6),140+Math.floor(i/3)*52+rnd(-6,6),capHtml(NEU[i%4],23)));
+  var hero=mk(400,238,halves(23));
+  mk(0,0,'<circle cx="400" cy="190" r="118" fill="#d9ecff" fill-opacity=".2" stroke="'+INK+'" stroke-width="5"/><ellipse cx="352" cy="118" rx="14" ry="32" fill="#fff" opacity=".5" transform="rotate(28 352 118)"/>');
+  var knob=mk(400,350,'<circle r="26" fill="#fff6e4" stroke="'+INK+'" stroke-width="4"/><rect x="-21" y="-5" width="42" height="10" rx="5" fill="'+INK+'"/>');
+  sfx.rumble();
+  var stop=every(230,sfx.tick);
+  caps.forEach(function(k,i){
+    fire(k,[{transform:'translate(0px,0px) rotate(0deg)'},{transform:'translate('+rnd(-30,30)+'px,'+rnd(-40,20)+'px) rotate(120deg)'},{transform:'translate('+rnd(-30,30)+'px,'+rnd(-20,40)+'px) rotate(240deg)'},{transform:'translate(0px,0px) rotate(360deg)'}],{d:700,n:Infinity,delay:i*45,e:'ease-in-out'});
+  });
+  fire(hero,[{transform:'translate(0px,0px) rotate(0deg)'},{transform:'translate(-34px,-44px) rotate(180deg)'},{transform:'translate(36px,8px) rotate(360deg)'},{transform:'translate(0px,0px) rotate(540deg)'}],{d:700,n:Infinity,e:'ease-in-out'});
+  fire(knob,[{transform:'rotate(0deg)'},{transform:'rotate(900deg)'}],{d:1600,e:'ease-in-out'});
+  await wait(1750); stop();
+  caps.concat([hero]).forEach(stopAnims);
+  sfx.whoosh();
+  await anim(hero,[{transform:'translate(0px,0px) rotate(0deg)'},{transform:'translate(0px,150px) rotate(360deg)'}],{d:650,e:'ease-in'});
+  sfx.boing();
+  await anim(hero,[{transform:'translate(0px,150px) rotate(0deg) scale(1)'},{transform:'translate(0px,212px) rotate(0deg) scale(1.6)'}],{d:380,e:'cubic-bezier(.2,1.4,.4,1)'});
+  await wait(250);
+  sfx.squeak(); wob(hero,0,212,1.6,3,100);
+  await wait(800);
+  sfx.squeak(); wob(hero,0,212,1.6,8,80);
+  await wait(650);
+  sfx.bang(); popCap(hero,0,212,1.6);
+  sparks(400,450,10,200);
+  await reveal(c,400,450);
+}
+
+/* ---------- scene 7: the randoseru ---------- */
+async function randoScene(c){
+  floor(432,130);
+  var glow=mk(400,300,'<circle r="175" fill="#fff6bf"/>');
+  glow.style.opacity=0;
+  var bag=mk(400,300,
+    '<rect x="-88" y="-62" width="176" height="196" rx="24" fill="#5b3f2e" stroke="'+INK+'" stroke-width="5"/>'+
+    '<ellipse cy="-58" rx="72" ry="16" fill="#1a1230"/>'+
+    '<rect x="-60" y="30" width="120" height="86" rx="14" fill="#6e4d39" stroke="'+INK+'" stroke-width="4"/>'+
+    '<circle cy="60" r="11" fill="#d9dcec" stroke="'+INK+'" stroke-width="3"/>'+
+    '<path d="M-52 42 H52" stroke="#a98466" stroke-width="3" stroke-dasharray="6 5"/>'+
+    '<g class="fl"><rect x="-94" y="-62" width="188" height="56" rx="14" fill="#7a553c" stroke="'+INK+'" stroke-width="5"/><rect x="-14" y="-30" width="28" height="30" rx="6" fill="#d9dcec" stroke="'+INK+'" stroke-width="3.5"/></g>');
+  var fl=bag.querySelector('.fl');
+  fl.style.transformOrigin='0px -62px';
+  bag.style.transformOrigin='0px 134px';
+  fire(glow,[{opacity:0},{opacity:.5}],{d:2600});
+  var hs=[70,100,140];
+  for(var i=0;i<hs.length;i++){
+    sfx.boing();
+    await anim(bag,[{transform:'translate(0px,0px) scale(1.12,.88)'},{transform:'translate(0px,'+(-hs[i])+'px) scale(.94,1.08)',offset:.5},{transform:'translate(0px,0px) scale(1.12,.88)'}],{d:560,e:'ease-out'});
+    await wait(60);
+  }
+  sfx.rumble(); shake(bag,4,100,4);
+  await wait(850);
+  shake(bag,9,70,6);
+  await wait(550);
+  stopAnims(bag);
+  sfx.bang();
+  fire(fl,[{transform:'scaleY(1)'},{transform:'scaleY(-1)'}],{d:150,raw:true});
+  sparks(400,240,12,220);
+  await reveal(c,400,240);
+}
+
+/* ---------- scene 8: the school locker ---------- */
+async function lockerScene(c){
+  floor(436,120);
+  var lk=mk(400,272,
+    '<rect x="-80" y="-166" width="160" height="332" rx="8" fill="#9aa6b8" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="-66" y="-152" width="132" height="304" rx="4" fill="#1a1230"/>'+
+    '<rect class="lt" x="-66" y="-152" width="132" height="304" fill="#fff6bf" opacity="0"/>'+
+    '<g class="dr"><rect x="-66" y="-152" width="132" height="304" rx="4" fill="#b4bfd0" stroke="'+INK+'" stroke-width="4"/>'+
+    '<g fill="#7c889c"><rect x="-44" y="-130" width="88" height="8" rx="4"/><rect x="-44" y="-112" width="88" height="8" rx="4"/><rect x="-44" y="-94" width="88" height="8" rx="4"/></g>'+
+    '<rect x="30" y="-6" width="14" height="40" rx="6" fill="#7c889c" stroke="'+INK+'" stroke-width="3"/>'+
+    '<rect x="-30" y="60" width="60" height="34" rx="4" fill="#fff6e4" stroke="'+INK+'" stroke-width="3"/>'+
+    '<text y="86" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="26" fill="'+INK+'">7</text></g>');
+  var dr=lk.querySelector('.dr'), lt=lk.querySelector('.lt');
+  dr.style.transformOrigin='-66px 0px';
+  sfx.rumble(); shake(lk,2,140,1.5);
+  await wait(900);
+  sfx.squeak(); shake(lk,5,100,3);
+  fire(lt,[{opacity:0},{opacity:.35}],{d:700});
+  puff(350,430,12); puff(450,430,12);
+  await wait(1100);
+  sfx.squeak(); shake(lk,9,70,5);
+  fire(dr,[{transform:'scaleX(1)'},{transform:'scaleX(.94)'},{transform:'scaleX(1)'}],{d:90,n:Infinity,raw:true});
+  fire(lt,[{opacity:.35},{opacity:.9}],{d:700});
+  await wait(900);
+  stopAnims(lk);
+  sfx.bang();
+  fire(dr,[{transform:'scaleX(1)'},{transform:'scaleX(-.3)'}],{d:200,e:'ease-out',raw:true});
+  shards(400,272,'#b4bfd0',10,220);
+  await reveal(c,400,272);
+}
+
+/* ---------- scene 9: taiko drum ---------- */
+async function taikoScene(c){
+  floor(446,170);
+  mk(0,0,'<path d="M330 350 L296 440 M470 350 L504 440" stroke="#5b3f2e" stroke-width="14" stroke-linecap="round"/>');
+  var studs='';
+  for(var i=0;i<16;i++){var a=i*Math.PI/8;studs+='<circle cx="'+(Math.cos(a)*111).toFixed(1)+'" cy="'+(Math.sin(a)*111).toFixed(1)+'" r="5"/>'}
+  var drum=mk(400,260,
+    '<circle r="124" fill="#8a5a3c" stroke="'+INK+'" stroke-width="5"/>'+
+    '<g fill="#ffd36b" stroke="'+INK+'" stroke-width="2">'+studs+'</g>'+
+    '<g class="head"><circle r="98" fill="#fff1d0" stroke="'+INK+'" stroke-width="5"/><circle r="30" fill="none" stroke="#d9b98a" stroke-width="8"/></g>');
+  var stick='<rect x="-6" y="0" width="12" height="150" rx="6" fill="#f3ecd8" stroke="'+INK+'" stroke-width="3"/><circle cy="152" r="9" fill="#f3ecd8" stroke="'+INK+'" stroke-width="3"/>';
+  var sL=mk(250,100,stick), sR=mk(550,100,stick);
+  sL.style.transform='rotate(-70deg)'; sR.style.transform='rotate(70deg)';
+  var head=drum.querySelector('.head');
+  var gaps=[360,300,250,210,175,145,120,100,85,75,70,70];
+  for(var i2=0;i2<gaps.length;i2++){
+    var g=gaps[i2], left=i2%2===0, s=left?sL:sR, a2=left?-1:1;
+    sfx.don();
+    fire(s,[{transform:'rotate('+(a2*70)+'deg)'},{transform:'rotate('+(a2*30)+'deg)',offset:.35},{transform:'rotate('+(a2*70)+'deg)'}],{d:Math.max(70,g*1.6),raw:true});
+    fire(drum,[{transform:'scale(1)'},{transform:'scale('+(1.03+i2*.004)+')'},{transform:'scale(1)'}],{d:g,raw:true});
+    var rp=mk(400,260,'<circle r="98" fill="none" stroke="#fff" stroke-width="6"/>');
+    fire(rp,[{transform:'scale(1)',opacity:.8},{transform:'scale(1.7)',opacity:0}],{d:420,e:'ease-out',raw:true});
+    await wait(g);
+  }
+  sfx.bang();
+  fire(head,[{transform:'scale(1)',opacity:1},{transform:'scale(1.4)',opacity:0}],{d:300,raw:true});
+  shards(400,260,'#fff1d0',14,260);
+  sparks(400,260,8,220);
+  await reveal(c,400,260);
+}
+
+/* ---------- scene 10: the lucky cat (maneki-neko) ---------- */
+async function nekoScene(c){
+  floor(436,120);
+  var cat=mk(400,300,
+    '<ellipse cx="-34" cy="122" rx="30" ry="14" fill="#fff1d0" stroke="'+INK+'" stroke-width="4"/><ellipse cx="34" cy="122" rx="30" ry="14" fill="#fff1d0" stroke="'+INK+'" stroke-width="4"/>'+
+    '<ellipse cy="40" rx="80" ry="86" fill="#fff1d0" stroke="'+INK+'" stroke-width="5"/>'+
+    '<ellipse cx="-56" cy="46" rx="20" ry="34" fill="#fff1d0" stroke="'+INK+'" stroke-width="4"/>'+
+    '<path d="M-52 -4 Q0 24 52 -4" stroke="#ff9f43" stroke-width="14" fill="none" stroke-linecap="round"/>'+
+    '<circle cy="18" r="11" fill="#ffd36b" stroke="'+INK+'" stroke-width="3"/>'+
+    '<ellipse cy="72" rx="24" ry="28" fill="#ffd36b" stroke="'+INK+'" stroke-width="4"/><line x1="-10" y1="64" x2="10" y2="64" stroke="'+INK+'" stroke-width="3"/><line x1="-10" y1="78" x2="10" y2="78" stroke="'+INK+'" stroke-width="3"/>'+
+    '<polygon points="-60,-84 -56,-140 -16,-110" fill="#fff1d0" stroke="'+INK+'" stroke-width="5" stroke-linejoin="round"/>'+
+    '<polygon points="60,-84 56,-140 16,-110" fill="#fff1d0" stroke="'+INK+'" stroke-width="5" stroke-linejoin="round"/>'+
+    '<polygon points="-50,-100 -48,-124 -32,-108" fill="#ffb3d1"/><polygon points="50,-100 48,-124 32,-108" fill="#ffb3d1"/>'+
+    '<circle cy="-56" r="64" fill="#fff1d0" stroke="'+INK+'" stroke-width="5"/>'+
+    '<path d="M-36 -58 Q-25 -72 -14 -58 M14 -58 Q25 -72 36 -58" stroke="'+INK+'" stroke-width="5" fill="none" stroke-linecap="round"/>'+
+    '<ellipse cy="-40" rx="7" ry="5" fill="#f39a9a"/>'+
+    '<path d="M-14 -30 Q-7 -20 0 -30 Q7 -20 14 -30" stroke="'+INK+'" stroke-width="3.5" fill="none" stroke-linecap="round"/>'+
+    '<path d="M-64 -44 L-98 -52 M-64 -34 L-98 -30 M64 -44 L98 -52 M64 -34 L98 -30" stroke="'+INK+'" stroke-width="3" stroke-linecap="round"/>'+
+    '<g transform="translate(84 20)"><g class="arm"><ellipse cx="10" cy="-52" rx="22" ry="58" fill="#fff1d0" stroke="'+INK+'" stroke-width="5" transform="rotate(14 10 -52)"/><ellipse cx="24" cy="-100" rx="12" ry="9" fill="#ffb3d1"/></g></g>');
+  var arm=cat.querySelector('.arm');
+  cat.style.transformOrigin='0px 130px';
+  for(var i=0;i<5;i++){
+    sfx.ding();
+    sparks(400+rnd(-150,150),rnd(110,300),2+i,50);
+    await anim(arm,[{transform:'rotate(-16deg)'},{transform:'rotate(24deg)'},{transform:'rotate(-16deg)'}],{d:460-i*55,e:'ease-in-out'});
+  }
+  sfx.boing();
+  await anim(cat,[{transform:'translate(0px,0px) scale(1.08,.92)'},{transform:'translate(0px,-34px) scale(.95,1.06)'},{transform:'translate(0px,0px) scale(1.08,.92)'}],{d:380});
+  sfx.bang();
+  sparks(400,200,16,240);
+  await reveal(c,400,200);
+}
+
+/* ---------- scene 11: the takoyaki ball ---------- */
+async function takoScene(c){
+  floor(438,100);
+  var tk=mk(0,380,
+    '<g class="rot"><circle r="58" fill="#d19a52" stroke="'+INK+'" stroke-width="5"/>'+
+    '<path d="M-42 -20 Q-21 -42 0 -20 T42 -20" stroke="#6b3a1d" stroke-width="9" fill="none" stroke-linecap="round"/>'+
+    '<path d="M-42 8 Q-21 -14 0 8 T42 8" stroke="#fff6e4" stroke-width="6" fill="none" stroke-linecap="round"/>'+
+    '<circle cx="-22" cy="30" r="6" fill="#a8713a"/><circle cx="24" cy="34" r="5" fill="#a8713a"/></g>'+
+    '<g class="fl" stroke="#f0d9a8" stroke-width="4" stroke-linecap="round" fill="none"><path d="M-14 -54 Q-6 -74 6 -62"/><path d="M6 -56 Q18 -76 26 -58"/><path d="M-30 -48 Q-34 -68 -20 -64"/></g>');
+  tk.style.transform='translate(-120px,0px)';
+  tk.style.transformOrigin='0px 58px';
+  var rot=tk.querySelector('.rot'), fl=tk.querySelector('.fl');
+  fire(fl,[{transform:'rotate(-5deg)'},{transform:'rotate(5deg)'},{transform:'rotate(-5deg)'}],{d:240,n:Infinity,e:'ease-in-out',raw:true});
+  sfx.whoosh();
+  fire(rot,[{transform:'rotate(0deg)'},{transform:'rotate(2000deg)'}],{d:3000,e:'linear',raw:true});
+  await anim(tk,[{transform:'translate(-120px,0px)'},{transform:'translate(400px,0px)'}],{d:900,e:'ease-out'});
+  var hs=[60,100];
+  for(var i=0;i<hs.length;i++){
+    sfx.boing();
+    await anim(tk,[{transform:'translate(400px,0px) scale(1.12,.88)'},{transform:'translate(400px,'+(-hs[i])+'px) scale(.94,1.08)',offset:.5},{transform:'translate(400px,0px) scale(1.12,.88)'}],{d:460,e:'ease-out'});
+  }
+  sfx.whoosh();
+  await anim(tk,[{transform:'translate(400px,0px) scale(1.12,.88)'},{transform:'translate(400px,-250px) scale(1,1)'}],{d:520,e:'ease-out'});
+  sfx.bang();
+  sparks(400,130,18,260);
+  puff(400,140,16); puff(380,150,12); puff(420,150,12);
+  tk.parentNode.remove();
+  await reveal(c,400,130);
+}
+
+/* ---------- scene 12: the washing machine ---------- */
+async function washerScene(c){
+  floor(448,170);
+  var m=mk(400,270,
+    '<rect x="-132" y="-170" width="264" height="340" rx="16" fill="#e9eaf5" stroke="'+INK+'" stroke-width="5"/>'+
+    '<line x1="-132" y1="-76" x2="132" y2="-76" stroke="'+INK+'" stroke-width="4"/>'+
+    '<circle cx="-82" cy="-123" r="24" fill="#c6cdea" stroke="'+INK+'" stroke-width="4"/><line x1="-82" y1="-123" x2="-70" y2="-135" stroke="'+INK+'" stroke-width="4" stroke-linecap="round"/>'+
+    '<rect x="-34" y="-142" width="96" height="38" rx="8" fill="#1d1650" stroke="'+INK+'" stroke-width="4"/>'+
+    '<text x="14" y="-114" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="24" fill="#fff6bf">88</text>'+
+    '<circle cx="98" cy="-123" r="10" fill="#aab3d4" stroke="'+INK+'" stroke-width="3"/>'+
+    '<g transform="translate(0 40)">'+
+      '<circle r="84" fill="#aab3d4" stroke="'+INK+'" stroke-width="5"/><circle r="70" fill="#1d1650"/>'+
+      '<g class="cl" stroke="'+INK+'" stroke-width="2"><rect x="-44" y="-30" width="34" height="22" rx="6" fill="#ff9f43"/><rect x="12" y="-40" width="30" height="20" rx="6" fill="#c6cdea"/><rect x="-20" y="12" width="36" height="22" rx="6" fill="#a58bff"/><rect x="24" y="14" width="28" height="22" rx="6" fill="#fff"/><rect x="-56" y="14" width="26" height="18" rx="6" fill="#e8e4ff"/></g>'+
+      '<g class="dr"><circle r="74" fill="#d9ecff" fill-opacity=".3" stroke="#fff" stroke-width="6"/><path d="M-48 -30 A58 58 0 0 1 -10 -56" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" opacity=".8"/></g>'+
+    '</g>');
+  var cl=m.querySelector('.cl'), dr=m.querySelector('.dr');
+  dr.style.transformOrigin='-74px 0px';
+  var spin=function(ms){stopAnims(cl);fire(cl,[{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{d:ms,n:Infinity,e:'linear',raw:true})};
+  var stop=every(260,function(){puff(400+rnd(-100,100),110,rnd(10,16))});
+  sfx.rumble(); spin(700); shake(m,2,120,.8);
+  await wait(900);
+  spin(400); shake(m,4,90,1.5); sfx.rumble();
+  await wait(900);
+  spin(180); shake(m,8,70,3); sfx.squeak();
+  await wait(800);
+  stop(); stopAnims(m);
+  sfx.bang();
+  fire(dr,[{transform:'scaleX(1)'},{transform:'scaleX(-.3)'}],{d:220,e:'ease-out',raw:true});
+  for(var i=0;i<9;i++){
+    var b=mk(400+rnd(-70,70),310+rnd(-30,30),'<circle r="'+rnd(10,22).toFixed(0)+'" fill="#fff" fill-opacity=".35" stroke="#fff" stroke-width="2.5"/>');
+    fire(b,[{transform:'translate(0px,0px)',opacity:1},{transform:'translate('+rnd(-90,90)+'px,'+(-rnd(120,260))+'px)',opacity:0}],{d:rnd(900,1500),e:'ease-out',raw:true});
+  }
+  await reveal(c,400,310);
+}
+
+/* ---------- scene 13: the claw machine ---------- */
+async function clawScene(c){
+  mk(0,0,'<rect x="150" y="40" width="500" height="410" rx="18" fill="#1d1650" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="166" y="56" width="468" height="348" rx="10" fill="#2a2170"/>'+
+    '<rect x="166" y="56" width="468" height="20" fill="#6a5ae0"/>'+
+    '<rect x="166" y="404" width="468" height="36" rx="6" fill="#8b7bff" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="546" y="350" width="80" height="54" rx="8" fill="#0f0b2b" stroke="'+INK+'" stroke-width="4"/>');
+  var xs=[206,258,312,490,520];
+  xs.forEach(function(x,i){mk(x,382,capHtml(NEU[i%4],24))});
+  [[236,336],[290,338],[346,344],[450,342],[494,334]].forEach(function(p,i){mk(p[0],p[1],capHtml(NEU[(i+2)%4],24))});
+  var hero=mk(400,372,halves(26));
+  var cw=mk(0,0,
+    '<clipPath id="clawClip"><rect x="166" y="76" width="468" height="330"/></clipPath>'+
+    '<g clip-path="url(#clawClip)"><g class="claw">'+
+    '<rect x="-3" y="-420" width="6" height="420" fill="#d9dcec"/>'+
+    '<rect x="-24" y="-2" width="48" height="22" rx="8" fill="#d9dcec" stroke="'+INK+'" stroke-width="4"/>'+
+    '<g class="pl"><path d="M-20 18 Q-44 50 -28 82" stroke="'+INK+'" stroke-width="14" fill="none" stroke-linecap="round"/><path d="M-20 18 Q-44 50 -28 82" stroke="#d9dcec" stroke-width="8" fill="none" stroke-linecap="round"/></g>'+
+    '<g class="pr"><path d="M20 18 Q44 50 28 82" stroke="'+INK+'" stroke-width="14" fill="none" stroke-linecap="round"/><path d="M20 18 Q44 50 28 82" stroke="#d9dcec" stroke-width="8" fill="none" stroke-linecap="round"/></g>'+
+    '</g></g>');
+  var claw=cw.querySelector('.claw'), pl=cw.querySelector('.pl'), pr=cw.querySelector('.pr');
+  pl.style.transformOrigin='-20px 18px'; pr.style.transformOrigin='20px 18px';
+  pl.style.transform='rotate(14deg)'; pr.style.transform='rotate(-14deg)';
+  var P=function(x,y){return 'translate('+x+'px,'+y+'px) rotate(0deg)'};
+  var grip=function(on){
+    fire(pl,[{transform:'rotate('+(on?14:-22)+'deg)'},{transform:'rotate('+(on?-22:14)+'deg)'}],{d:260,raw:true});
+    fire(pr,[{transform:'rotate('+(on?-14:22)+'deg)'},{transform:'rotate('+(on?22:-14)+'deg)'}],{d:260,raw:true});
+  };
+  claw.style.transform=P(300,100);
+  sfx.whoosh();
+  await anim(claw,[{transform:P(300,100)},{transform:P(400,100)}],{d:550,e:'ease-in-out'});
+  await anim(claw,[{transform:P(400,100)},{transform:P(400,268)}],{d:550,e:'ease-in'});
+  grip(true); sfx.squeak();
+  await wait(280);
+  await Promise.all([
+    anim(claw,[{transform:P(400,268)},{transform:P(400,200)}],{d:380}),
+    anim(hero,[{transform:'translate(0px,0px)'},{transform:'translate(0px,-68px)'}],{d:380})
+  ]);
+  grip(false); sfx.boing();
+  await anim(hero,[{transform:'translate(0px,-68px)'},{transform:'translate(0px,0px)'}],{d:300,e:'ease-in'});
+  await anim(claw,[{transform:'translate(400px,200px) rotate(-7deg)'},{transform:'translate(400px,200px) rotate(7deg)'},{transform:'translate(400px,200px) rotate(0deg)'}],{d:260});
+  await anim(claw,[{transform:P(400,200)},{transform:P(400,268)}],{d:300,e:'ease-in'});
+  grip(true); sfx.squeak();
+  await wait(240);
+  await Promise.all([
+    anim(claw,[{transform:P(400,268)},{transform:P(400,130)}],{d:600}),
+    anim(hero,[{transform:'translate(0px,0px)'},{transform:'translate(0px,-138px)'}],{d:600})
+  ]);
+  sfx.tick(); wob(hero,0,-138,1,4,90);
+  await wait(550);
+  sfx.bang(); popCap(hero,0,-138,1);
+  grip(false);
+  sparks(400,234,12,200);
+  await reveal(c,400,234);
+}
+
+/* ---------- scene 14: the penguin delivery ---------- */
+async function penguinScene(c){
+  floor(440,300);
+  mk(0,0,'<ellipse cx="330" cy="438" rx="66" ry="11" fill="#bfe9ff" opacity=".75"/><ellipse cx="324" cy="436" rx="30" ry="4" fill="#fff" opacity=".8"/>');
+  var pen=mk(0,330,
+    '<ellipse cx="-22" cy="96" rx="22" ry="10" fill="#ff9f43" stroke="'+INK+'" stroke-width="3"/><ellipse cx="22" cy="96" rx="22" ry="10" fill="#ff9f43" stroke="'+INK+'" stroke-width="3"/>'+
+    '<ellipse cy="26" rx="54" ry="76" fill="#33334a" stroke="'+INK+'" stroke-width="5"/>'+
+    '<ellipse cy="40" rx="34" ry="56" fill="#fff"/>'+
+    '<ellipse cx="-58" cy="30" rx="12" ry="38" fill="#33334a" stroke="'+INK+'" stroke-width="4" transform="rotate(14 -58 30)"/><ellipse cx="58" cy="30" rx="12" ry="38" fill="#33334a" stroke="'+INK+'" stroke-width="4" transform="rotate(-14 58 30)"/>'+
+    '<circle cy="-62" r="38" fill="#33334a" stroke="'+INK+'" stroke-width="5"/>'+
+    '<circle cx="-14" cy="-66" r="9" fill="#fff"/><circle cx="14" cy="-66" r="9" fill="#fff"/><circle cx="-12" cy="-65" r="4" fill="'+INK+'"/><circle cx="16" cy="-65" r="4" fill="'+INK+'"/>'+
+    '<polygon points="-9,-50 9,-50 0,-36" fill="#ff9f43" stroke="'+INK+'" stroke-width="3" stroke-linejoin="round"/>');
+  var pk=mk(0,372,PARCEL);
+  var kf=[];
+  for(var i=0;i<=7;i++)kf.push({transform:'translate('+(-160+i*70)+'px,'+(i%2?-10:0)+'px) rotate('+(i%2?8:-8)+'deg)'});
+  var stop=every(200,sfx.squeak);
+  await Promise.all([anim(pen,kf,{d:1500,e:'linear'}),anim(pk,kf,{d:1500,e:'linear'})]);
+  stop();
+  sfx.whoosh();
+  fire(pk,[{transform:'translate(330px,0px) rotate(0deg)',easing:'ease-out'},{transform:'translate(390px,-240px) rotate(200deg)',offset:.5,easing:'ease-in'},{transform:'translate(440px,48px) rotate(360deg)'}],{d:1100,e:'linear'});
+  fire(pen,[{transform:'translate(330px,-10px) rotate(8deg)',easing:'ease-out'},{transform:'translate(310px,-60px) rotate(-50deg)',offset:.4,easing:'ease-in'},{transform:'translate(290px,50px) rotate(-92deg)'}],{d:700,e:'linear'});
+  await wait(1150);
+  sfx.boing();
+  var dz=mk(232,335,'<g fill="#ffd36b" stroke="'+INK+'" stroke-width="2"><polygon points="0,-46 5,-36 -5,-36"/><polygon points="40,23 32,31 38,18"/><polygon points="-40,23 -32,31 -38,18"/></g>');
+  fire(dz,[{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{d:900,n:Infinity,e:'linear',raw:true});
+  await anim(pk,[{transform:'translate(440px,48px) rotate(0deg) scale(1,1)'},{transform:'translate(440px,48px) rotate(0deg) scale(1.14,.86)'},{transform:'translate(440px,48px) rotate(0deg) scale(1,1)'}],{d:300});
+  sfx.tick(); shake(pk,3,110,2,440,48);
+  await wait(650);
+  sfx.tick(); shake(pk,8,80,5,440,48);
+  await wait(550);
+  sfx.bang(); shards(440,420,'#c58b4e',12,230);
+  fire(pk,[{opacity:1},{opacity:0}],{d:80,raw:true});
+  await reveal(c,440,410);
+}
+
+/* ---------- scene 15: the volcano ---------- */
+async function volcanoScene(c){
+  floor(448,220);
+  var vol=mk(0,0,
+    '<polygon points="170,446 320,214 480,214 630,446" fill="#7a5568" stroke="'+INK+'" stroke-width="5" stroke-linejoin="round"/>'+
+    '<path d="M255 380 Q300 392 340 372 M470 340 Q520 356 556 392" stroke="#5e3f50" stroke-width="6" fill="none" stroke-linecap="round"/>'+
+    '<path class="s1" d="M352 226 Q334 290 312 336" stroke="#ff9f43" stroke-width="11" fill="none" stroke-linecap="round" opacity="0"/>'+
+    '<path class="s2" d="M452 226 Q472 284 500 326" stroke="#ff9f43" stroke-width="11" fill="none" stroke-linecap="round" opacity="0"/>'+
+    '<ellipse cx="400" cy="214" rx="84" ry="20" fill="#3a2230" stroke="'+INK+'" stroke-width="5"/>'+
+    '<ellipse class="lv" cx="400" cy="216" rx="70" ry="13" fill="#ff9f43" opacity="0"/>');
+  var lv=vol.querySelector('.lv'), s1=vol.querySelector('.s1'), s2=vol.querySelector('.s2');
+  sfx.rumble(); shake(vol,2,140,0);
+  fire(lv,[{opacity:0},{opacity:.6}],{d:1000});
+  var stop=every(220,function(){
+    var b=mk(400+rnd(-50,50),212,'<circle r="9" fill="#ffd36b" stroke="'+INK+'" stroke-width="2"/>');
+    fire(b,[{transform:'translate(0px,0px) scale(.3)',opacity:1},{transform:'translate(0px,-26px) scale(1.2)',opacity:0}],{d:520,raw:true});
+    puff(400+rnd(-40,40),200,rnd(10,16));
+  });
+  await wait(1100);
+  sfx.rumble(); shake(vol,5,100,0);
+  fire(s1,[{opacity:0},{opacity:1}],{d:400}); fire(s2,[{opacity:0},{opacity:1}],{d:400,delay:250});
+  fire(lv,[{opacity:.6},{opacity:.95}],{d:900});
+  await wait(1100);
+  shake(vol,9,70,0); sfx.squeak();
+  await wait(800);
+  stop(); stopAnims(vol);
+  sfx.bang();
+  for(var i=0;i<16;i++){
+    var dx=rnd(-120,120), h=rnd(150,320);
+    var p=mk(400+rnd(-60,60),212,'<circle r="'+rnd(5,10).toFixed(0)+'" fill="'+pick(['#ff9f43','#ffd36b'])+'" stroke="'+INK+'" stroke-width="2"/>');
+    fire(p,[{transform:'translate(0px,0px)',opacity:1},{transform:'translate('+dx+'px,'+(-h)+'px)',opacity:1,offset:.45},{transform:'translate('+(dx*1.4)+'px,120px)',opacity:0}],{d:rnd(900,1300),e:'ease-out',raw:true});
+  }
+  await reveal(c,400,200);
+}
+
+/* ---------- scene 16: bento box ---------- */
+async function bentoScene(c){
+  floor(432,150);
+  var bx=mk(400,330,
+    '<rect x="-116" y="-30" width="232" height="104" rx="16" fill="#c6cdea" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="-104" y="-30" width="208" height="14" fill="#1a1230"/>'+
+    '<g fill="#fff6e4" stroke="'+INK+'" stroke-width="3"><rect x="-70" y="26" width="60" height="34" rx="8"/><rect x="10" y="26" width="60" height="34" rx="8"/></g>'+
+    '<g class="lid"><rect x="-124" y="-64" width="248" height="38" rx="14" fill="#a58bff" stroke="'+INK+'" stroke-width="5"/><rect x="-14" y="-54" width="28" height="18" rx="6" fill="#fff6e4" stroke="'+INK+'" stroke-width="3"/></g>');
+  var lid=bx.querySelector('.lid');
+  sfx.rumble(); shake(bx,2,120,1.5);
+  await wait(700);
+  for(var i=0;i<2;i++){
+    sfx.squeak();
+    await anim(lid,[{transform:'translate(0px,0px) rotate(0deg)'},{transform:'translate(0px,-26px) rotate(-5deg)'},{transform:'translate(0px,0px) rotate(0deg)'}],{d:300});
+    await wait(160);
+  }
+  shake(bx,7,80,4); sfx.rumble();
+  await wait(750);
+  stopAnims(bx); sfx.bang();
+  fire(lid,[{transform:'translate(0px,0px) rotate(0deg)'},{transform:'translate(60px,-430px) rotate(540deg)'}],{d:800,e:'ease-in',raw:true});
+  sparks(400,300,10,220);
+  await reveal(c,400,300);
+}
+
+/* ---------- scene 17: classroom cleaning disaster ---------- */
+async function mopScene(c){
+  floor(432,280);
+  mk(0,0,'<rect x="300" y="300" width="200" height="96" fill="#1a1230" opacity=".35"/>'+
+    '<rect x="284" y="282" width="16" height="140" fill="#8a6540" stroke="'+INK+'" stroke-width="3"/><rect x="500" y="282" width="16" height="140" fill="#8a6540" stroke="'+INK+'" stroke-width="3"/>'+
+    '<rect x="266" y="258" width="268" height="24" rx="8" fill="#b98a5a" stroke="'+INK+'" stroke-width="5"/>');
+  var bun=mk(400,390,'<g fill="#c6cdea" stroke="'+INK+'" stroke-width="3.5"><circle cx="-16" cy="4" r="22"/><circle cx="16" cy="6" r="24"/><circle cy="-10" r="22"/></g>'+
+    '<text y="12" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="30" fill="'+INK+'">?</text>');
+  var strands='';
+  for(var s=0;s<7;s++)strands+='<line x1="'+(-40+s*13)+'" y1="20" x2="'+(-44+s*14)+'" y2="38"/>';
+  var mop=mk(0,0,'<line x1="0" y1="0" x2="74" y2="-180" stroke="#b98a5a" stroke-width="10" stroke-linecap="round"/>'+
+    '<rect x="-46" y="-2" width="92" height="22" rx="8" fill="#e8e4ff" stroke="'+INK+'" stroke-width="4"/>'+
+    '<g stroke="#e8e4ff" stroke-width="5" stroke-linecap="round">'+strands+'</g>');
+  var M=function(x,r){return 'translate('+x+'px,392px) rotate('+r+'deg)'};
+  mop.style.transform=M(110,-6);
+  shake(bun,2,120,2);
+  sfx.whoosh();
+  await anim(mop,[{transform:M(110,-6)},{transform:M(300,8)}],{d:450,e:'ease-in-out'}); puff(330,400,12);
+  await anim(mop,[{transform:M(300,8)},{transform:M(180,-8)}],{d:350,e:'ease-in-out'});
+  shake(bun,5,90,4); sfx.squeak();
+  await anim(mop,[{transform:M(180,-8)},{transform:M(330,10)}],{d:380,e:'ease-in-out'}); puff(340,400,14);
+  await anim(mop,[{transform:M(330,10)},{transform:M(190,-10)}],{d:300});
+  sfx.whoosh();
+  await anim(mop,[{transform:M(190,-10)},{transform:M(440,12)}],{d:300,e:'ease-in'});
+  sfx.bang();
+  stopAnims(bun);
+  fire(bun,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(150px,-210px) rotate(540deg)',opacity:1,offset:.7},{transform:'translate(170px,-240px) rotate(600deg)',opacity:0}],{d:500,e:'ease-out',raw:true});
+  await wait(420);
+  sparks(550,170,10,160);
+  await reveal(c,550,170);
+}
+
+/* ---------- scene 18: pencil case explosion ---------- */
+async function pencilScene(c){
+  floor(432,170);
+  var pc=mk(400,360,'<rect x="-130" y="-34" width="260" height="76" rx="34" fill="#a58bff" stroke="'+INK+'" stroke-width="5"/>'+
+    '<path d="M-100 -12 H100" stroke="#fff6e4" stroke-width="5" stroke-dasharray="8 6"/>'+
+    '<circle cx="70" cy="20" r="14" fill="#fff6e4" stroke="'+INK+'" stroke-width="3"/>'+
+    '<g class="zp"><rect x="-108" y="-24" width="24" height="22" rx="7" fill="#d9dcec" stroke="'+INK+'" stroke-width="3"/></g>');
+  var zp=pc.querySelector('.zp');
+  sfx.rumble(); shake(pc,2,120,1.5);
+  fire(zp,[{transform:'translate(0px,0px)'},{transform:'translate(192px,0px)'}],{d:2000,e:'ease-in-out'});
+  await wait(900); shake(pc,5,90,3); sfx.squeak();
+  await wait(700); shake(pc,9,70,5);
+  await wait(450);
+  stopAnims(pc); sfx.bang();
+  var cols=['#a58bff','#ff9f43','#c6cdea'];
+  for(var i=0;i<18;i++){
+    var t=i%3, html;
+    if(t===0)html='<rect x="-40" y="-5" width="68" height="10" fill="'+cols[i%3===0?(i%9)/3|0:0]+'" stroke="'+INK+'" stroke-width="2.5"/><polygon points="28,-5 44,0 28,5" fill="#f1d7a0" stroke="'+INK+'" stroke-width="2"/><rect x="-46" y="-5" width="8" height="10" fill="#d9dcec" stroke="'+INK+'" stroke-width="2"/>';
+    else if(t===1)html='<rect x="-18" y="-10" width="36" height="20" rx="4" fill="#fff" stroke="'+INK+'" stroke-width="3"/><rect x="-18" y="-10" width="14" height="20" rx="4" fill="#8a8fb0" stroke="'+INK+'" stroke-width="2"/>';
+    else html='<rect x="-52" y="-9" width="104" height="18" rx="3" fill="#e8e4ff" stroke="'+INK+'" stroke-width="3"/><path d="M-40 -9 V-1 M-24 -9 V-3 M-8 -9 V-1 M8 -9 V-3 M24 -9 V-1 M40 -9 V-3" stroke="'+INK+'" stroke-width="2"/>';
+    var it=mk(400+rnd(-60,60),330,html);
+    var dx=rnd(-330,330), h=rnd(120,300);
+    fire(it,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate('+(dx*.6)+'px,'+(-h)+'px) rotate('+rnd(-360,360)+'deg)',opacity:1,offset:.5},{transform:'translate('+dx+'px,'+rnd(80,200)+'px) rotate('+rnd(-720,720)+'deg)',opacity:0}],{d:rnd(1000,1500),e:'ease-out',raw:true});
+  }
+  sparks(400,330,8,160);
+  await wait(500);
+  await reveal(c,400,320);
+}
+
+/* ---------- scene 19: vending machine glitch ---------- */
+async function vendingScene(c){
+  floor(448,150);
+  var btn='';
+  for(var i=0;i<8;i++)btn+='<circle class="bt" cx="'+(i%2?74:50)+'" cy="'+(-120+Math.floor(i/2)*30)+'" r="9" fill="#fff6bf" stroke="'+INK+'" stroke-width="2.5" opacity=".25"/>';
+  var cans='';
+  [-114,-62,-10].forEach(function(y,r){[-62,-28,6].forEach(function(x,k){cans+='<rect x="'+x+'" y="'+y+'" width="24" height="38" rx="6" fill="'+NEU[(r+k)%4]+'" stroke="'+INK+'" stroke-width="3"/>'})});
+  var vm=mk(400,270,
+    '<rect x="-100" y="-180" width="200" height="360" rx="14" fill="#aab3d4" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="-84" y="-148" width="118" height="190" rx="8" fill="#1a1230"/>'+cans+
+    '<rect x="-84" y="-148" width="118" height="190" rx="8" fill="#d9ecff" fill-opacity=".14"/>'+
+    '<rect x="-84" y="-172" width="168" height="16" rx="6" fill="#6a5ae0" stroke="'+INK+'" stroke-width="3"/>'+
+    '<rect x="44" y="-150" width="46" height="150" rx="8" fill="#8a8fb0" stroke="'+INK+'" stroke-width="3"/>'+btn+
+    '<rect x="-84" y="70" width="118" height="34" rx="6" fill="#1d1650" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="-84" y="118" width="118" height="46" rx="8" fill="#0f0b2b" stroke="'+INK+'" stroke-width="4"/>');
+  var hero=mk(375,340,halves(23));
+  hero.style.opacity=0;
+  Array.prototype.forEach.call(vm.querySelectorAll('.bt'),function(b,k){
+    fire(b,[{opacity:.25},{opacity:1},{opacity:.25}],{d:300,n:Infinity,delay:k*70,raw:true});
+  });
+  sfx.rumble(); shake(vm,2,120,.8);
+  var stop=every(150,sfx.tick);
+  await wait(800);
+  shake(vm,5,90,1.5); sfx.squeak();
+  await wait(800);
+  shake(vm,9,70,2.5); sfx.squeak();
+  await wait(600);
+  stop(); stopAnims(vm); sfx.bang();
+  hero.style.opacity=1;
+  await anim(hero,[{transform:'translate(0px,0px) rotate(0deg)'},{transform:'translate(0px,76px) rotate(360deg)'}],{d:450,e:'ease-in'});
+  sfx.boing();
+  await anim(hero,[{transform:'translate(0px,76px) rotate(0deg) scale(1)'},{transform:'translate(0px,110px) rotate(0deg) scale(1.6)'}],{d:380,e:'cubic-bezier(.2,1.4,.4,1)'});
+  await wait(250);
+  sfx.squeak(); wob(hero,0,110,1.6,4,90);
+  await wait(650);
+  sfx.bang(); popCap(hero,0,110,1.6);
+  sparks(375,450,10,200);
+  await reveal(c,375,450);
+}
+
+/* ---------- scene 20: the onigiri ---------- */
+async function onigiriScene(c){
+  floor(432,130);
+  var BLOB='M0 -84 C66 -84 98 0 94 52 C92 84 60 86 0 86 C-60 86 -92 84 -94 52 C-98 0 -66 -84 0 -84 Z';
+  var half=function(cls,clipId){
+    return '<g class="'+cls+'"><g clip-path="url(#'+clipId+')"><g clip-path="url(#oniB)"><rect x="-110" y="-96" width="220" height="192" fill="#fff"/><rect x="-110" y="22" width="220" height="80" fill="#2b2b3a"/></g>'+
+      '<path d="'+BLOB+'" fill="none" stroke="'+INK+'" stroke-width="10" stroke-linejoin="round"/></g></g>';
+  };
+  var oni=mk(400,310,
+    '<clipPath id="oniB"><path d="'+BLOB+'"/></clipPath><clipPath id="oniL"><rect x="-120" y="-100" width="120" height="200"/></clipPath><clipPath id="oniR"><rect x="0" y="-100" width="120" height="200"/></clipPath>'+
+    half('hl','oniL')+half('hr','oniR')+
+    '<g class="wr"><rect x="-104" y="-96" width="208" height="192" rx="26" fill="#d9ecff" fill-opacity=".3" stroke="#fff" stroke-width="4"/><path d="M-70 -70 L-40 -88" stroke="#fff" stroke-width="6" stroke-linecap="round"/><rect x="-14" y="-110" width="28" height="22" rx="4" fill="#fff" fill-opacity=".7"/></g>');
+  var hl=oni.querySelector('.hl'), hr=oni.querySelector('.hr'), wr=oni.querySelector('.wr');
+  sfx.whoosh();
+  await anim(oni,[{transform:'translate(0px,-330px) scale(.5) rotate(0deg)'},{transform:'translate(0px,0px) scale(1) rotate(720deg)'}],{d:800,e:'cubic-bezier(.2,.8,.3,1)'});
+  sfx.boing();
+  await anim(oni,[{transform:'translate(0px,0px) scale(1.14,.86) rotate(0deg)'},{transform:'translate(0px,0px) scale(1,1) rotate(0deg)'}],{d:300});
+  sfx.whoosh();
+  await anim(oni,[{transform:'translate(0px,0px) scale(1) rotate(0deg)'},{transform:'translate(0px,0px) scale(1.18) rotate(720deg)'},{transform:'translate(0px,0px) scale(1) rotate(1080deg)'}],{d:900,e:'ease-in-out'});
+  sfx.squeak();
+  fire(wr,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(60px,-280px) rotate(260deg)',opacity:0}],{d:700,e:'ease-in',raw:true});
+  await wait(450);
+  shake(oni,4,100,3); sfx.rumble();
+  await wait(800);
+  stopAnims(oni);
+  sfx.bang();
+  fire(hl,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(-190px,40px) rotate(-50deg)',opacity:0}],{d:600,e:'ease-out',raw:true});
+  fire(hr,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(190px,40px) rotate(50deg)',opacity:0}],{d:600,e:'ease-out',raw:true});
+  sparks(400,310,10,220);
+  await reveal(c,400,310);
+}
+
+/* ---------- scene 21: the monkey's banana ---------- */
+async function monkeyScene(c){
+  floor(436,130);
+  var mn=mk(400,320,
+    '<ellipse cx="-44" cy="128" rx="34" ry="15" fill="#8a5a3c" stroke="'+INK+'" stroke-width="4"/><ellipse cx="44" cy="128" rx="34" ry="15" fill="#8a5a3c" stroke="'+INK+'" stroke-width="4"/>'+
+    '<ellipse cy="64" rx="76" ry="70" fill="#8a5a3c" stroke="'+INK+'" stroke-width="5"/><ellipse cy="82" rx="46" ry="48" fill="#f1d0a5"/>'+
+    '<circle cx="-66" cy="-54" r="24" fill="#8a5a3c" stroke="'+INK+'" stroke-width="5"/><circle cx="66" cy="-54" r="24" fill="#8a5a3c" stroke="'+INK+'" stroke-width="5"/>'+
+    '<circle cx="-66" cy="-54" r="12" fill="#f1d0a5"/><circle cx="66" cy="-54" r="12" fill="#f1d0a5"/>'+
+    '<circle cy="-40" r="62" fill="#8a5a3c" stroke="'+INK+'" stroke-width="5"/><ellipse cy="-26" rx="44" ry="38" fill="#f1d0a5"/>'+
+    '<g class="eyes"><circle cx="-18" cy="-44" r="9" fill="#fff" stroke="'+INK+'" stroke-width="2"/><circle cx="18" cy="-44" r="9" fill="#fff" stroke="'+INK+'" stroke-width="2"/><circle cx="-16" cy="-43" r="4" fill="'+INK+'"/><circle cx="20" cy="-43" r="4" fill="'+INK+'"/></g>'+
+    '<ellipse cy="-24" rx="6" ry="4" fill="#5b3f2e"/><path d="M-14 -10 Q0 4 14 -10" stroke="'+INK+'" stroke-width="4" fill="none" stroke-linecap="round"/>'+
+    '<g transform="translate(0 52)"><path d="M-20 -70 Q-34 0 -14 58 Q8 76 24 54 Q36 -10 20 -70 Z" fill="#fff0b3" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="-6" y="-82" width="12" height="14" rx="3" fill="#7a553c" stroke="'+INK+'" stroke-width="3"/>'+
+    '<path class="f1" d="M0 -70 Q-34 -64 -34 -16 L-8 -58 Z" fill="#fff0b3" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/>'+
+    '<path class="f2" d="M0 -70 Q34 -64 34 -16 L8 -58 Z" fill="#fff0b3" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/></g>'+
+    '<ellipse cx="-50" cy="56" rx="16" ry="34" fill="#8a5a3c" stroke="'+INK+'" stroke-width="4" transform="rotate(-20 -50 56)"/><ellipse cx="50" cy="56" rx="16" ry="34" fill="#8a5a3c" stroke="'+INK+'" stroke-width="4" transform="rotate(20 50 56)"/>');
+  var f1=mn.querySelector('.f1'), f2=mn.querySelector('.f2'), eyes=mn.querySelector('.eyes');
+  f1.style.transformOrigin='0px -70px'; f2.style.transformOrigin='0px -70px';
+  eyes.style.transformOrigin='0px -44px';
+  mn.style.transformOrigin='0px 142px';
+  for(var i=0;i<2;i++){
+    sfx.boing();
+    await anim(mn,[{transform:'translate(0px,0px) scale(1.1,.9)'},{transform:'translate(0px,-'+(50+i*30)+'px) scale(.95,1.06)',offset:.5},{transform:'translate(0px,0px) scale(1.1,.9)'}],{d:480,e:'ease-out'});
+  }
+  sfx.squeak();
+  await anim(f1,[{transform:'rotate(0deg)'},{transform:'rotate(-40deg)'}],{d:280});
+  await wait(180);
+  sfx.squeak();
+  await anim(f2,[{transform:'rotate(0deg)'},{transform:'rotate(40deg)'}],{d:280});
+  fire(eyes,[{transform:'scale(1)'},{transform:'scale(1.4)'}],{d:300});
+  sfx.rumble(); shake(mn,3,90,2);
+  await wait(800);
+  stopAnims(mn); sfx.bang();
+  fire(f1,[{transform:'rotate(-40deg)'},{transform:'rotate(-85deg)'}],{d:160,raw:true});
+  fire(f2,[{transform:'rotate(40deg)'},{transform:'rotate(85deg)'}],{d:160,raw:true});
+  fire(mn,[{transform:'translate(0px,0px) scale(1.1,.9)'},{transform:'translate(0px,-40px) scale(.95,1.06)'},{transform:'translate(0px,0px) scale(1,1)'}],{d:500,e:'ease-out',raw:true});
+  sparks(400,230,12,220);
+  await reveal(c,400,230);
+}
+
+/* ---------- scene 22: the 3D printer ---------- */
+async function printerScene(c){
+  floor(440,160);
+  mk(0,0,'<rect x="250" y="410" width="300" height="26" rx="8" fill="#6a5ae0" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="258" y="126" width="20" height="290" fill="#aab3d4" stroke="'+INK+'" stroke-width="4"/><rect x="522" y="126" width="20" height="290" fill="#aab3d4" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="250" y="106" width="300" height="24" rx="8" fill="#aab3d4" stroke="'+INK+'" stroke-width="4"/><rect x="300" y="400" width="200" height="12" fill="#1d1650"/>');
+  var blk=mk(0,0,'');
+  var gt=mk(0,0,'<rect x="262" y="-8" width="276" height="16" rx="6" fill="#c6cdea" stroke="'+INK+'" stroke-width="4"/>'+
+    '<g class="ng"><rect x="-16" y="6" width="32" height="22" rx="5" fill="#d9dcec" stroke="'+INK+'" stroke-width="3"/><polygon points="-7,28 7,28 0,42" fill="#ff9f43" stroke="'+INK+'" stroke-width="3"/></g>');
+  var ng=gt.querySelector('.ng');
+  var Y=function(i){return 400-22*(i+1)-42};
+  ng.style.transform='translate(330px,0px)';
+  gt.style.transform='translate(0px,'+Y(0)+'px)';
+  sfx.whoosh();
+  for(var i=0;i<8;i++){
+    var ytop=400-22*(i+1), dir=i%2?-1:1;
+    var ly=mk(330,ytop,'<rect width="140" height="22" fill="'+(i%2?'#b7bfd9':'#c6cdea')+'" stroke="'+INK+'" stroke-width="3"/>',blk);
+    ly.style.transform='scaleX(0)';
+    sfx.tick();
+    await Promise.all([
+      anim(ly,[{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{d:200,e:'linear'}),
+      anim(ng,[{transform:'translate('+(dir>0?330:470)+'px,0px)'},{transform:'translate('+(dir>0?470:330)+'px,0px)'}],{d:200,e:'linear'}),
+      anim(gt,[{transform:'translate(0px,'+Y(i)+'px)'},{transform:'translate(0px,'+Y(i)+'px)',offset:.8},{transform:'translate(0px,'+Y(i+1)+'px)'}],{d:200})
+    ]);
+  }
+  sfx.ding();
+  await anim(gt,[{transform:'translate(0px,'+Y(8)+'px)'},{transform:'translate(0px,90px)'}],{d:400,e:'ease-in'});
+  sfx.rumble(); shake(blk,3,90,0);
+  await wait(700);
+  shake(blk,7,70,0); sfx.squeak();
+  await wait(500);
+  stopAnims(blk); sfx.bang();
+  shards(400,320,'#c6cdea',14,240);
+  blk.parentNode.remove();
+  await reveal(c,400,320);
+}
+
+/* ---------- scene 23: the toilet paper roll ---------- */
+async function tpScene(c){
+  floor(432,330);
+  var strip=mk(760,428,'<rect x="-420" y="-9" width="420" height="9" fill="#fff" stroke="'+INK+'" stroke-width="3"/><path d="M-420 -4.5 H0" stroke="#e8e4ff" stroke-width="2" stroke-dasharray="14 10"/>');
+  strip.style.transform='scaleX(0)';
+  var roll=mk(760,372,'<g class="rot"><circle r="56" fill="#fff" stroke="'+INK+'" stroke-width="5"/><circle r="40" fill="none" stroke="#d9dcec" stroke-width="3"/><circle r="26" fill="none" stroke="#d9dcec" stroke-width="3"/><circle r="14" fill="#c58b4e" stroke="'+INK+'" stroke-width="4"/><line x1="14" y1="0" x2="56" y2="0" stroke="#d9dcec" stroke-width="3"/></g>');
+  roll.style.transformOrigin='0px 56px';
+  var rot=roll.querySelector('.rot');
+  sfx.whoosh();
+  var stop=every(180,sfx.tick);
+  fire(rot,[{transform:'rotate(0deg)'},{transform:'rotate(-1800deg)'}],{d:1900,e:'linear'});
+  fire(strip,[{transform:'scaleX(0)'},{transform:'scaleX(.857)'}],{d:1900,e:'linear'});
+  await anim(roll,[{transform:'translate(0px,0px) scale(1)'},{transform:'translate(-360px,0px) scale(.45)'}],{d:1900,e:'linear'});
+  stop();
+  sfx.squeak(); wob(roll,-360,0,.45,5,100);
+  await wait(800);
+  sfx.bang();
+  shards(400,404,'#ffffff',12,220);
+  roll.parentNode.remove();
+  await reveal(c,400,404);
+}
+
+/* ---------- scene 24: the time machine flies through a wormhole of eras ---------- */
+var EMO_FONT='Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif';
+function emojiHtml(e,size){return '<text text-anchor="middle" dominant-baseline="central" font-family="'+EMO_FONT+'" font-size="'+size+'">'+e+'</text>'}
+async function timeScene(c){
+  var sh=mk(400,440,'<ellipse rx="140" ry="20" fill="#000" opacity=".3"/>');
+  var nowD=new Date();
+  var today=nowD.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  var STOPS=[
+    {y:nowD.getFullYear(),t:today,e:'Today',em:['\u{1F4F1}','\u{1F697}','\u{1F3D9}\uFE0F','\u{1F4BB}','\u{1F6F8}']},
+    {y:1868,t:'1868',e:'Meiji era',k:'\u{1F682}',em:['\u{1F682}','\u{1F3A9}','\u{1F3EE}','\u{1F3ED}','\u{1F570}\uFE0F']},
+    {y:1603,t:'1603',e:'Edo era \u00B7 Samurai',k:'\u{1F3EF}',em:['\u{1F3EF}','\u{1F977}','\u2694\uFE0F','\u{1F38E}','\u{1F3F9}']},
+    {y:794,t:'794',e:'Heian era',k:'\u26E9\uFE0F',em:['\u26E9\uFE0F','\u{1F458}','\u{1F338}','\u{1F3AD}','\u{1F4DC}']},
+    {y:-300,t:'300 BC',e:'Yayoi era',k:'\u{1F6D6}',em:['\u{1F6D6}','\u{1F33E}','\u{1F3FA}','\u{1F41F}','\u{1F525}']},
+    {y:-10000,t:'10,000 BC',e:'Jomon era \u00B7 Ice Age',k:'\u{1F9A3}',em:['\u{1F9A3}','\u2744\uFE0F','\u{1F525}','\u{1F3F9}','\u{1F9CA}']},
+    {y:-65000000,t:'65 million years ago',e:'Dinosaurs!',k:'\u{1F995}',em:['\u{1F995}','\u{1F996}','\u{1F30B}','\u2604\uFE0F','\u{1F98E}']}
+  ];
+  var fmt=function(y){
+    if(y>=1)return String(y);
+    var a=Math.abs(y);
+    if(a>=1000000)return Math.round(a/1000000)+' million years ago';
+    return (a<1?1:a).toLocaleString('en-US')+' BC';
+  };
+  var tunL=mk(0,0,'');
+  var bgT=mk(400,330,'<defs><radialGradient id="tunG"><stop offset="0" stop-color="#fff6bf" stop-opacity=".95"/><stop offset=".22" stop-color="#7b5cff" stop-opacity=".75"/><stop offset="1" stop-color="#0f0b2b" stop-opacity=".95"/></radialGradient></defs><circle r="380" fill="url(#tunG)"/>',tunL);
+  bgT.style.opacity=0;
+  var RC=['#a58bff','#7ee7ff','#ff9bd1','#ffd21f'], rings=[], lines=[];
+  for(var q=0;q<10;q++){var rg=mk(400,330,'<circle r="60" fill="none" stroke="'+RC[q%4]+'" stroke-width="7" vector-effect="non-scaling-stroke"/>',tunL); rg.style.opacity=0; rings.push(rg)}
+  for(var q2=0;q2<16;q2++){var ln=mk(400,330,'<line x1="-26" y1="0" x2="26" y2="0" stroke="#fff" stroke-width="4" stroke-linecap="round"/>',tunL); ln.style.opacity=0; ln._a=q2*22.5+rnd(-6,6); lines.push(ln)}
+  var flow=function(rev){
+    rings.forEach(function(r,i){
+      stopAnims(r);
+      var kf=[{transform:'scale(.12)',opacity:0},{transform:'scale(.9)',opacity:.9,offset:.5},{transform:'scale(6)',opacity:0}];
+      if(rev)kf.reverse();
+      fire(r,kf,{d:1500,n:Infinity,delay:-i*150,e:'linear',raw:true});
+    });
+    lines.forEach(function(l,i){
+      stopAnims(l);
+      var A='rotate('+l._a+'deg) ';
+      var kf=[{transform:A+'translate(40px,0px) scaleX(.3)',opacity:0},{transform:A+'translate(260px,0px) scaleX(1.6)',opacity:.85,offset:.5},{transform:A+'translate(520px,0px) scaleX(2.4)',opacity:0}];
+      if(rev)kf.reverse();
+      fire(l,kf,{d:800,n:Infinity,delay:-i*50,e:'linear',raw:true});
+    });
+  };
+  var elay=mk(0,0,'');
+  var flyE=function(k,rev,keep){
+    var e=mk(400,330,emojiHtml(k,90),elay); e.style.opacity=0;
+    var kf=[{transform:'scale(.15)',opacity:0},{transform:'scale('+(keep?2.2:1.8)+')',opacity:1,offset:.6},{transform:'scale('+(keep?2.4:3.4)+')',opacity:keep?1:0}];
+    if(rev)kf.reverse();
+    fire(e,kf,{d:keep?500:620,e:'ease-out'});
+    return e;
+  };
+  var spray=function(list,rev,n){
+    for(var i=0;i<n;i++){
+      var a=rnd(0,6.283), R=rnd(300,540), r=rnd(-200,200);
+      var g=mk(400,330,emojiHtml(pick(list),rnd(44,70).toFixed(0)),elay); g.style.opacity=0;
+      var kf=[{transform:'translate(0px,0px) scale(.2) rotate(0deg)',opacity:0},{transform:'translate('+(Math.cos(a)*R*.35)+'px,'+(Math.sin(a)*R*.35)+'px) scale(1) rotate('+(r*.3)+'deg)',opacity:1,offset:.3},{transform:'translate('+(Math.cos(a)*R)+'px,'+(Math.sin(a)*R)+'px) scale(2.4) rotate('+r+'deg)',opacity:0}];
+      if(rev)kf.reverse();
+      fire(g,kf,{d:rnd(900,1300),delay:i*70,e:'ease-in'}).then(function(el){return function(){try{el.parentNode.remove()}catch(x){}}}(g));
+    }
+  };
+  var tm=mk(400,330,
+    '<rect x="-72" y="-104" width="144" height="208" rx="22" fill="#a58bff" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="-52" y="-82" width="104" height="164" rx="12" fill="#1d1650" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect class="lt" x="-52" y="-82" width="104" height="164" rx="12" fill="#fff6bf" opacity="0"/>'+
+    '<g class="dr"><rect x="-52" y="-82" width="104" height="164" rx="12" fill="#d9ecff" fill-opacity=".55" stroke="'+INK+'" stroke-width="4"/></g>'+
+    '<rect x="-86" y="104" width="172" height="16" rx="6" fill="#6a5ae0" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="-6" y="-126" width="12" height="24" fill="#aab3d4" stroke="'+INK+'" stroke-width="3"/><circle class="bk" cy="-134" r="10" fill="#ff5a5a" stroke="'+INK+'" stroke-width="3"/>');
+  var FF='Fredoka,Trebuchet MS,sans-serif';
+  var panel=mk(0,0,
+    '<rect x="170" y="18" width="460" height="138" rx="18" fill="#0f0b2b" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="180" y="28" width="440" height="118" rx="12" fill="#1d1650" stroke="#6a5ae0" stroke-width="3"/>'+
+    '<text class="yr" x="400" y="92" text-anchor="middle" font-family="'+FF+'" font-weight="700" font-size="60" fill="#ffc933"></text>'+
+    '<text class="er" x="400" y="130" text-anchor="middle" font-family="'+FF+'" font-weight="700" font-size="24" fill="#fff6e4"></text>');
+  var yr=panel.querySelector('.yr'), er=panel.querySelector('.er');
+  var show=function(t,e,col){
+    yr.textContent=t; yr.setAttribute('font-size',t.length<=11?60:(t.length<=14?46:34));
+    yr.setAttribute('fill',col||'#ffc933'); er.textContent=e||'';
+  };
+  show(today,'Today');
+  var dr=tm.querySelector('.dr'), lt=tm.querySelector('.lt'), bk=tm.querySelector('.bk');
+  dr.style.transformOrigin='-52px 0px';
+  fire(bk,[{opacity:1},{opacity:.2},{opacity:1}],{d:380,n:Infinity,raw:true});
+  sfx.rumble();
+  shake(tm,2,120,1);
+  fire(bgT,[{opacity:0},{opacity:1}],{d:900});
+  await wait(900);
+  stopAnims(tm);
+  flow(false);
+  fire(sh,[{opacity:1},{opacity:0}],{d:400,raw:true});
+  sfx.whoosh();
+  await anim(tm,[{transform:'scale(1) rotate(0deg)'},{transform:'scale(.5) rotate(360deg)'}],{d:600,e:'ease-in'});
+  fire(tm,[{transform:'scale(.5) rotate(-8deg)'},{transform:'scale(.54) rotate(8deg)'},{transform:'scale(.5) rotate(-8deg)'}],{d:600,n:Infinity,raw:true});
+  var prev=STOPS[0], dEl=null;
+  for(var i2=1;i2<STOPS.length;i2++){
+    var s=STOPS[i2];
+    for(var k=0;k<2;k++){
+      show(fmt(Math.round(prev.y+(s.y-prev.y)*(k+1)/3)),'Going back in time…','#ff9bd1');
+      spray(prev.em,false,2);
+      sfx.tick(); await wait(70);
+    }
+    sfx.ding(); show(s.t,s.e);
+    var e1=flyE(s.k,false,s.k==='\u{1F995}'); if(s.k==='\u{1F995}')dEl=e1;
+    spray(s.em,false,7);
+    await wait(s.k==='\u{1F995}'?900:700);
+    prev=s;
+  }
+  sfx.rumble(); shake(panel,3,90,0);
+  await wait(900);
+  stopAnims(panel);
+  fire(dEl,[{transform:'scale(2.4)',opacity:1},{transform:'scale(.15)',opacity:0}],{d:500,e:'ease-in'});
+  sfx.whoosh();
+  flow(true);
+  for(var j=STOPS.length-2;j>=0;j--){
+    var s2=STOPS[j];
+    show(fmt(Math.round((prev.y+s2.y)/2)),'Back to the future!','#7ee7ff');
+    sfx.tick(); await wait(70);
+    sfx.ding(); show(s2.t,j===0?'You are back!':s2.e);
+    if(j>0)flyE(s2.k,true,false);
+    spray(s2.em,true,6);
+    await wait(j===0?600:480);
+    prev=s2;
+  }
+  fire(tunL,[{opacity:1},{opacity:0}],{d:500,raw:true});
+  fire(sh,[{opacity:0},{opacity:1}],{d:500,raw:true});
+  stopAnims(tm);
+  sfx.boing();
+  await anim(tm,[{transform:'scale(.5) rotate(-360deg)'},{transform:'scale(1.12) rotate(0deg)',offset:.7},{transform:'scale(1) rotate(0deg)'}],{d:520,e:'cubic-bezier(.2,1.4,.4,1)'});
+  rings.concat(lines).forEach(stopAnims);
+  puff(340,440,12); puff(460,440,12);
+  sfx.rumble(); shake(tm,5,80,2);
+  fire(lt,[{opacity:0},{opacity:.8}],{d:700});
+  await wait(750);
+  stopAnims(tm); sfx.bang();
+  fire(panel,[{opacity:1},{opacity:0}],{d:300,raw:true});
+  fire(dr,[{transform:'scaleX(1)'},{transform:'scaleX(-.3)'}],{d:200,e:'ease-out',raw:true});
+  sparks(400,330,12,220);
+  await reveal(c,400,330);
+}
+
+/* ---------- scene 25: the train station ---------- */
+async function trainScene(c){
+  mk(0,0,'<rect x="0" y="392" width="800" height="108" fill="#2a2170"/><rect x="0" y="386" width="800" height="8" fill="#aab3d4"/><rect x="0" y="378" width="800" height="5" fill="#8a8fb0"/>'+
+    '<rect x="104" y="300" width="8" height="88" fill="#aab3d4" stroke="'+INK+'" stroke-width="2"/><circle cx="108" cy="296" r="22" fill="#fff6e4" stroke="'+INK+'" stroke-width="4"/><path d="M96 296 H120" stroke="'+INK+'" stroke-width="4" stroke-linecap="round"/>');
+  var tr=mk(400,290,
+    '<rect x="-200" y="-80" width="400" height="150" rx="26" fill="#e9eaf5" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="-198" y="22" width="396" height="14" fill="#ff9f43"/>'+
+    '<g fill="#d9ecff" stroke="'+INK+'" stroke-width="3"><rect x="-172" y="-54" width="56" height="42" rx="6"/><rect x="-104" y="-54" width="56" height="42" rx="6"/><rect x="48" y="-54" width="56" height="42" rx="6"/><rect x="116" y="-54" width="56" height="42" rx="6"/></g>'+
+    '<rect x="-38" y="-62" width="76" height="116" fill="#1a1230" stroke="'+INK+'" stroke-width="3"/>'+
+    '<rect class="lt" x="-38" y="-62" width="76" height="116" fill="#fff6bf" opacity="0"/>'+
+    '<rect x="-30" y="12" width="60" height="30" rx="8" fill="#6a5ae0" stroke="'+INK+'" stroke-width="3"/><rect x="-30" y="-14" width="60" height="30" rx="8" fill="#6a5ae0" stroke="'+INK+'" stroke-width="3"/>'+
+    '<g class="dl"><rect x="-38" y="-62" width="38" height="116" fill="#c6cdea" stroke="'+INK+'" stroke-width="3"/><rect x="-28" y="-44" width="18" height="30" fill="#d9ecff"/></g>'+
+    '<g class="dr"><rect x="0" y="-62" width="38" height="116" fill="#c6cdea" stroke="'+INK+'" stroke-width="3"/><rect x="10" y="-44" width="18" height="30" fill="#d9ecff"/></g>'+
+    '<g fill="#4a4a66" stroke="'+INK+'" stroke-width="3"><circle cx="-150" cy="78" r="14"/><circle cx="-110" cy="78" r="14"/><circle cx="110" cy="78" r="14"/><circle cx="150" cy="78" r="14"/></g>');
+  var dl=tr.querySelector('.dl'), dr=tr.querySelector('.dr'), lt=tr.querySelector('.lt');
+  tr.style.transform='translate(-720px,0px)';
+  sfx.whoosh();
+  await anim(tr,[{transform:'translate(-720px,0px) scale(1,1)'},{transform:'translate(0px,0px) scale(1,1)'}],{d:1100,e:'cubic-bezier(.1,.8,.2,1)'});
+  sfx.squeak(); sparks(250,374,5,50); sparks(550,374,5,50);
+  await anim(tr,[{transform:'translate(0px,0px) scale(1.03,.97)'},{transform:'translate(0px,0px) scale(1,1)'}],{d:240});
+  sfx.ding(); await wait(200); sfx.ding();
+  await wait(250);
+  fire(dl,[{transform:'translate(0px,0px)',opacity:1},{transform:'translate(-36px,0px)',opacity:1,offset:.8},{transform:'translate(-36px,0px)',opacity:0}],{d:420,raw:true});
+  await anim(dr,[{transform:'translate(0px,0px)',opacity:1},{transform:'translate(36px,0px)',opacity:1,offset:.8},{transform:'translate(36px,0px)',opacity:0}],{d:420});
+  fire(lt,[{opacity:0},{opacity:.9}],{d:500});
+  await wait(650);
+  sparks(400,300,10,200);
+  await reveal(c,400,300);
+}
+
+/* ---------- scene 26: the sushi conveyor belt ---------- */
+async function sushiScene(c){
+  mk(0,0,'<rect x="0" y="352" width="800" height="26" fill="#6a5ae0" stroke="'+INK+'" stroke-width="4"/><rect x="0" y="378" width="800" height="122" fill="#2a2170"/>');
+  var row=mk(0,0,'');
+  var tops=['#ff9f43','#a58bff','#c6cdea','#fff6e4'];
+  for(var i=0;i<12;i++){
+    mk(120*i-100,336,
+      '<ellipse cy="14" rx="50" ry="13" fill="#fff" stroke="'+INK+'" stroke-width="3.5"/>'+
+      '<ellipse cy="6" rx="26" ry="12" fill="#fff6e4" stroke="'+INK+'" stroke-width="3"/>'+
+      '<ellipse cy="-2" rx="27" ry="10" fill="'+tops[i%4]+'" stroke="'+INK+'" stroke-width="3"/>'+
+      (i===10?'<g class="dm"><path d="M-48 14 A48 62 0 0 1 48 14 Z" fill="#a58bff" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/><circle cy="-44" r="7" fill="#fff6e4" stroke="'+INK+'" stroke-width="3"/></g>':''),row);
+  }
+  var dm=row.querySelector('.dm');
+  var stop=every(120,sfx.tick);
+  sfx.whoosh();
+  await anim(row,[{transform:'translate(0px,0px)'},{transform:'translate(-160px,0px)'}],{d:600,e:'ease-in'});
+  await anim(row,[{transform:'translate(-160px,0px)'},{transform:'translate(-420px,0px)'}],{d:400,e:'linear'});
+  await anim(row,[{transform:'translate(-420px,0px)'},{transform:'translate(-700px,0px)'}],{d:260,e:'ease-in'});
+  stop(); sfx.squeak();
+  await anim(row,[{transform:'translate(-700px,0px)'},{transform:'translate(-712px,0px)',offset:.4},{transform:'translate(-700px,0px)'}],{d:240});
+  shake(dm,3,100,3); sfx.rumble();
+  await wait(750);
+  shake(dm,7,70,5);
+  await wait(550);
+  stopAnims(dm); sfx.bang();
+  fire(dm,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(40px,-300px) rotate(360deg)',opacity:0}],{d:700,e:'ease-in',raw:true});
+  sparks(400,320,10,200);
+  await reveal(c,400,320);
+}
+
+function start(){
+  if(st.phase==='guess'){st.guessSkip=true;return}
+  if(st.finished){restart();return}
+  play();
+}
+function restart(){
+  st.finished=false; st.round=0; st.last=null; st.lastScene=-1; buildDeck();
+  world.innerHTML=''; play();
+}
+function finish(){
+  st.rid++; cancelAll(); st.finished=true; st.revealed=false; st.phase=null;
+  world.innerHTML=''; intro.hidden=true; answer.hidden=true; again.hidden=true; capEl.hidden=true;
+  var arr=Array.from(st.shapes).sort(), n=arr.length, per=Math.min(13,n), rows=Math.ceil(n/per);
+  mk(400,100,'<text text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="68" fill="#ffc933" stroke="'+INK+'" stroke-width="3" paint-order="stroke">Great job!</text>');
+  arr.forEach(function(ch,i){
+    var r=Math.floor(i/per), k=i%per;
+    var x=400+(k-(per-1)/2)*54, y=rows===1?270:(rows===2?220+r*100:200+r*90);
+    var g=mk(x,y,'<g transform="scale(.42)">'+sticker(ch,LETTER_HEX)+'</g>');
+    if(!REDUCED)fire(g,[{transform:'translate(0px,0px)'},{transform:'translate(0px,-10px)'},{transform:'translate(0px,0px)'}],{d:1400,n:Infinity,delay:i*70,raw:true});
+  });
+  sfx.pop(); sparks(400,250,16,320);
+  go.textContent='Play again'; statusEl.textContent='Finished · all '+n+' letters!';
+}
+
+/* ---------- festival-style scenes: gachapon, UFO catcher (fails twice), fireworks ---------- */
+function bubble(x,y,txt){
+  var w=txt.length*16+36;
+  var b=mk(x,y,'<rect x="'+(-w/2)+'" y="-26" width="'+w+'" height="46" rx="23" fill="#fff6e4" stroke="'+INK+'" stroke-width="4"/>'+
+    '<polygon points="-9,18 9,18 0,36" fill="#fff6e4" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/>'+
+    '<rect x="-8" y="15" width="16" height="7" fill="#fff6e4"/>'+
+    '<text y="8" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="26" fill="'+INK+'">'+txt+'</text>');
+  fire(b,[{transform:'scale(.2)',opacity:0},{transform:'scale(1.1)',opacity:1,offset:.2},{transform:'scale(1)',opacity:1,offset:.8},{transform:'scale(1)',opacity:0}],{d:1500,raw:true});
+}
+function gcap(r,col){
+  return '<g class="t"><path d="M'+(-r)+' 0 A'+r+' '+r+' 0 0 1 '+r+' 0 Z" fill="'+col+'" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/>'+
+    '<ellipse cx="'+(-r*.35)+'" cy="'+(-r*.5)+'" rx="'+(r*.2)+'" ry="'+(r*.12)+'" fill="#fff" opacity=".7" transform="rotate(-30 '+(-r*.35)+' '+(-r*.5)+')"/></g>'+
+    '<g class="b"><path d="M'+(-r)+' 0 A'+r+' '+r+' 0 0 0 '+r+' 0 Z" fill="#fff" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/></g>';
+}
+function giftHtml(w,h,col){
+  var t=-h/2;
+  return '<rect x="'+(-w/2)+'" y="'+t+'" width="'+w+'" height="'+h+'" rx="6" fill="'+col+'" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="-7" y="'+t+'" width="14" height="'+h+'" fill="#fff6bf" stroke="'+INK+'" stroke-width="2.5"/>'+
+    '<rect x="'+(-w/2)+'" y="-6" width="'+w+'" height="12" fill="#fff6bf" stroke="'+INK+'" stroke-width="2.5"/>'+
+    '<path d="M0 '+t+' C-24 '+(t-26)+' -34 '+(t-4)+' 0 '+t+' C34 '+(t-4)+' 24 '+(t-26)+' 0 '+t+' Z" fill="#fff6bf" stroke="'+INK+'" stroke-width="3" stroke-linejoin="round"/>';
+}
+function bearHtml(col,belly){
+  return '<ellipse cy="18" rx="28" ry="26" fill="'+col+'" stroke="'+INK+'" stroke-width="4"/><ellipse cy="22" rx="16" ry="15" fill="'+belly+'"/>'+
+    '<circle cx="-22" cy="-34" r="11" fill="'+col+'" stroke="'+INK+'" stroke-width="4"/><circle cx="22" cy="-34" r="11" fill="'+col+'" stroke="'+INK+'" stroke-width="4"/>'+
+    '<circle cx="-22" cy="-34" r="5" fill="'+belly+'"/><circle cx="22" cy="-34" r="5" fill="'+belly+'"/>'+
+    '<circle cy="-14" r="28" fill="'+col+'" stroke="'+INK+'" stroke-width="4"/><ellipse cy="-5" rx="13" ry="10" fill="'+belly+'"/>'+
+    '<circle cx="-10" cy="-18" r="3.5" fill="'+INK+'"/><circle cx="10" cy="-18" r="3.5" fill="'+INK+'"/><ellipse cy="-8" rx="4.5" ry="3.5" fill="'+INK+'"/>';
+}
+
+/* ---------- scene: gachapon ---------- */
+async function gachaponScene(c){
+  floor(452,160);
+  var cols=['#ff6b6b','#ffd21f','#2fc25b','#2f72f0','#ff7fb8','#ff9f43'];
+  mk(0,0,
+    '<rect x="296" y="296" width="208" height="146" rx="16" fill="#ec3a30" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="296" y="296" width="208" height="20" rx="10" fill="#ff6b5e" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="308" y="330" width="60" height="40" rx="8" fill="#fff6e4" stroke="'+INK+'" stroke-width="3.5"/>'+
+    '<text x="338" y="357" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="19" fill="'+INK+'">¥100</text>'+
+    '<rect x="426" y="330" width="28" height="9" rx="4" fill="#0f0b2b" stroke="'+INK+'" stroke-width="2.5"/>'+
+    '<rect x="346" y="392" width="108" height="42" rx="10" fill="#1d1650" stroke="'+INK+'" stroke-width="4"/>');
+  var pts=[[360,240],[404,246],[446,240],[340,200],[382,202],[424,200],[466,202],[368,158],[414,156]];
+  var caps=pts.map(function(p,i){return mk(p[0],p[1],capHtml(cols[i%6],20))});
+  mk(0,0,'<circle cx="400" cy="196" r="104" fill="#d9ecff" fill-opacity=".2" stroke="'+INK+'" stroke-width="5"/>'+
+    '<ellipse cx="352" cy="140" rx="12" ry="30" fill="#fff" opacity=".45" transform="rotate(28 352 140)"/>'+
+    '<rect x="364" y="86" width="72" height="16" rx="8" fill="#ff6b5e" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="350" y="286" width="100" height="14" rx="6" fill="#ff6b5e" stroke="'+INK+'" stroke-width="4"/>');
+  var knob=mk(400,358,'<circle r="24" fill="#fff6e4" stroke="'+INK+'" stroke-width="4"/><rect x="-20" y="-5" width="40" height="10" rx="5" fill="'+INK+'"/>');
+  var hero=mk(400,414,gcap(24,'#ff6b6b')); hero.style.opacity=0;
+  await wait(400);
+  var coin=mk(440,30,'<circle r="20" fill="#ffd36b" stroke="'+INK+'" stroke-width="4"/><circle r="13" fill="none" stroke="#b8860b" stroke-width="2"/><text y="6" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="15" fill="'+INK+'">100</text>');
+  sfx.whoosh();
+  await anim(coin,[{transform:'translate(0px,0px) scaleX(1)',opacity:1},{transform:'translate(0px,296px) scaleX(-1)',opacity:1,offset:.93},{transform:'translate(0px,305px) scaleX(-1)',opacity:0}],{d:750,e:'ease-in'});
+  sfx.ding();
+  await wait(300);
+  fire(knob,[{transform:'rotate(0deg)'},{transform:'rotate(1080deg)'}],{d:1700,e:'ease-in-out'});
+  var stop=every(210,sfx.tick); sfx.rumble();
+  caps.forEach(function(k,i){
+    fire(k,[{transform:'translate(0px,0px) rotate(0deg)'},{transform:'translate('+rnd(-14,14)+'px,'+rnd(-18,10)+'px) rotate(120deg)'},{transform:'translate('+rnd(-14,14)+'px,'+rnd(-10,18)+'px) rotate(240deg)'},{transform:'translate(0px,0px) rotate(360deg)'}],{d:650,n:Infinity,delay:i*40,e:'ease-in-out'});
+  });
+  await wait(1800); stop();
+  caps.forEach(stopAnims);
+  sfx.don();
+  hero.style.opacity=1;
+  await anim(hero,[{transform:'translate(0px,-16px) scale(.4) rotate(0deg)',opacity:0},{transform:'translate(0px,0px) scale(.9) rotate(90deg)',opacity:1,offset:.35},{transform:'translate(0px,40px) scale(1.4) rotate(720deg)',opacity:1}],{d:800,e:'ease-in'});
+  sfx.boing();
+  await anim(hero,[{transform:'translate(0px,40px) scale(1.55,1.25)'},{transform:'translate(0px,40px) scale(1.4,1.4)'}],{d:300});
+  await wait(250);
+  sfx.squeak(); wob(hero,0,40,1.4,3,100);
+  await wait(800);
+  sfx.squeak(); wob(hero,0,40,1.4,8,80);
+  await wait(650);
+  sfx.bang(); popCap(hero,0,40,1.4);
+  sparks(400,454,10,200);
+  await reveal(c,400,454);
+}
+
+/* ---------- scene: UFO catcher that fails twice ---------- */
+async function craneScene(c){
+  floor(474,270);
+  mk(0,0,
+    '<rect x="130" y="24" width="540" height="446" rx="20" fill="#8b7bff" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="230" y="34" width="340" height="30" rx="10" fill="#ffc933" stroke="'+INK+'" stroke-width="4"/>'+
+    '<text x="400" y="56" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="21" fill="'+INK+'">UFO CATCHER</text>'+
+    '<rect x="156" y="72" width="488" height="278" rx="6" fill="#2a2170" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="156" y="340" width="488" height="10" fill="#6a5ae0"/>'+
+    '<rect x="156" y="72" width="488" height="14" fill="#aab3d4" stroke="'+INK+'" stroke-width="3"/>'+
+    '<rect x="156" y="356" width="488" height="92" rx="10" fill="#ec3a30" stroke="'+INK+'" stroke-width="4"/>'+
+    '<circle cx="230" cy="412" r="18" fill="#aab3d4" stroke="'+INK+'" stroke-width="3.5"/><rect x="226" y="382" width="8" height="30" fill="#d9dcec" stroke="'+INK+'" stroke-width="2.5"/><circle cx="230" cy="378" r="15" fill="#2f72f0" stroke="'+INK+'" stroke-width="3.5"/>'+
+    '<circle cx="330" cy="408" r="22" fill="#ffd21f" stroke="'+INK+'" stroke-width="4"/><circle cx="392" cy="408" r="15" fill="#2fc25b" stroke="'+INK+'" stroke-width="3.5"/>'+
+    '<rect x="530" y="388" width="100" height="48" rx="10" fill="#0f0b2b" stroke="'+INK+'" stroke-width="4"/>'+
+    '<ellipse cx="588" cy="346" rx="44" ry="10" fill="#0f0b2b" stroke="'+INK+'" stroke-width="4"/>');
+  mk(262,322,giftHtml(50,52,'#2f72f0'));
+  mk(332,306,bearHtml('#c48a5a','#f1d0a5'));
+  mk(468,306,bearHtml('#ffb3d1','#fff1f6'));
+  var tg=mk(400,318,giftHtml(70,60,'#ff9f43'));
+  var cwg=mk(0,0,'<clipPath id="craneClip"><rect x="158" y="86" width="484" height="254"/></clipPath><g clip-path="url(#craneClip)"><g class="cr">'+
+    '<rect x="-3" y="-420" width="6" height="420" fill="#d9dcec" stroke="#8a8fb0" stroke-width="1"/>'+
+    '<rect x="-24" y="-2" width="48" height="22" rx="8" fill="#d9dcec" stroke="'+INK+'" stroke-width="4"/>'+
+    '<g class="pl"><path d="M-20 18 Q-46 50 -28 84" stroke="'+INK+'" stroke-width="14" fill="none" stroke-linecap="round"/><path d="M-20 18 Q-46 50 -28 84" stroke="#d9dcec" stroke-width="8" fill="none" stroke-linecap="round"/></g>'+
+    '<g class="pr"><path d="M20 18 Q46 50 28 84" stroke="'+INK+'" stroke-width="14" fill="none" stroke-linecap="round"/><path d="M20 18 Q46 50 28 84" stroke="#d9dcec" stroke-width="8" fill="none" stroke-linecap="round"/></g>'+
+    '</g></g>');
+  var cr=cwg.querySelector('.cr'), pl=cwg.querySelector('.pl'), pr=cwg.querySelector('.pr');
+  pl.style.transformOrigin='-20px 18px'; pr.style.transformOrigin='20px 18px';
+  var cx=250, cy=110, tx=0, ty=0, gl=26, gr=-26;
+  cr.style.transform='translate(250px,110px)'; pl.style.transform='rotate(26deg)'; pr.style.transform='rotate(-26deg)';
+  var mv=function(nx,ny,ms,carry){
+    var ps=[anim(cr,[{transform:'translate('+cx+'px,'+cy+'px)'},{transform:'translate('+nx+'px,'+ny+'px)'}],{d:ms})];
+    if(carry){
+      var ntx=tx+nx-cx, nty=ty+ny-cy;
+      ps.push(anim(tg,[{transform:'translate('+tx+'px,'+ty+'px)'},{transform:'translate('+ntx+'px,'+nty+'px)'}],{d:ms}));
+      tx=ntx; ty=nty;
+    }
+    cx=nx; cy=ny;
+    return Promise.all(ps);
+  };
+  var grip=function(l,r,ms){
+    var p=Promise.all([anim(pl,[{transform:'rotate('+gl+'deg)'},{transform:'rotate('+l+'deg)'}],{d:ms,e:'ease-out'}),anim(pr,[{transform:'rotate('+gr+'deg)'},{transform:'rotate('+r+'deg)'}],{d:ms,e:'ease-out'})]);
+    gl=l; gr=r; return p;
+  };
+  var slip=async function(txt){
+    grip(26,-26,140);
+    sfx.boing();
+    bubble(cx+120,cy+10,txt);
+    await anim(tg,[{transform:'translate('+tx+'px,'+ty+'px)'},{transform:'translate('+tx+'px,0px)'}],{d:340,e:'ease-in'});
+    ty=0;
+    await anim(tg,[{transform:'translate('+tx+'px,0px) scale(1.12,.88)'},{transform:'translate('+tx+'px,0px) scale(1,1)'}],{d:240});
+  };
+  await wait(350);
+  /* try 1 */
+  sfx.tick(); await mv(400,110,700);
+  await wait(200); sfx.whoosh(); await mv(400,214,600);
+  sfx.squeak(); await grip(4,-4,300); await wait(120);
+  await mv(400,150,450,true);
+  await wait(150);
+  await slip('Oh no!');
+  await wait(250);
+  /* try 2 */
+  await mv(400,110,450);
+  await mv(400,214,550);
+  sfx.squeak(); await grip(4,-4,300); await wait(120);
+  await mv(420,128,600,true);
+  await wait(120);
+  await slip('So close!');
+  await wait(250);
+  /* try 3: it works */
+  await mv(420,110,450);
+  await mv(420,214,550);
+  sfx.squeak(); await grip(4,-4,300); await wait(120);
+  await mv(420,110,550,true);
+  sfx.rumble();
+  await mv(584,110,900,true);
+  await wait(150);
+  grip(26,-26,160);
+  sfx.boing();
+  await anim(tg,[{transform:'translate('+tx+'px,'+ty+'px) scale(1)',opacity:1},{transform:'translate('+tx+'px,'+(ty+122)+'px) scale(.5)',opacity:0}],{d:520,e:'ease-in'});
+  sfx.ding();
+  mv(250,110,700).catch(function(){});
+  await wait(350);
+  var out=mk(580,418,giftHtml(56,48,'#ff9f43')); out.style.opacity=0;
+  sfx.pop();
+  await anim(out,[{transform:'scale(.2)',opacity:0},{transform:'scale(1.5)',opacity:1,offset:.7},{transform:'scale(1.3)',opacity:1}],{d:450,e:'cubic-bezier(.2,1.4,.4,1)'});
+  sfx.squeak(); wob(out,0,0,1.3,3,100);
+  await wait(650);
+  sfx.squeak(); wob(out,0,0,1.3,8,80);
+  await wait(550);
+  stopAnims(out); sfx.bang();
+  shards(580,418,'#ff9f43',12,220);
+  out.parentNode.remove();
+  sparks(580,418,10,200);
+  await reveal(c,580,418);
+}
+
+/* ---------- scene: hanabi (fireworks) ---------- */
+function rocket(x,y,ms){
+  var r=mk(x,0,'<line y1="0" y2="46" stroke="#ffd36b" stroke-width="5" stroke-linecap="round" opacity=".75"/><circle r="6" fill="#fff6bf"/>');
+  sfx.whoosh();
+  return anim(r,[{transform:'translate(0px,440px)',opacity:1},{transform:'translate(0px,'+y+'px)',opacity:1,offset:.97},{transform:'translate(0px,'+y+'px)',opacity:0}],{d:ms,e:'cubic-bezier(.2,.7,.4,1)'});
+}
+function burst(x,y,col,n,R){
+  sfx.bang();
+  var fl=mk(x,y,'<circle r="26" fill="#fff6bf"/>');
+  fire(fl,[{transform:'scale(.2)',opacity:.9},{transform:'scale(3.2)',opacity:0}],{d:420,e:'ease-out',raw:true});
+  [[n,R,col],[Math.round(n/2),R*.55,'#fff']].forEach(function(ring){
+    for(var i=0;i<ring[0];i++){
+      var a=i/ring[0]*6.283+rnd(-.05,.05), r=ring[1]*rnd(.9,1.05);
+      var s=mk(x,y,'<circle r="6" fill="'+ring[2]+'"/><circle r="2.5" fill="#fff"/>');
+      fire(s,[{transform:'translate(0px,0px) scale(1)',opacity:1},{transform:'translate('+(Math.cos(a)*r)+'px,'+(Math.sin(a)*r)+'px) scale(.9)',opacity:1,offset:.55},{transform:'translate('+(Math.cos(a)*r*1.08)+'px,'+(Math.sin(a)*r*1.08+60)+'px) scale(.2)',opacity:0}],{d:1500,e:'cubic-bezier(.1,.7,.3,1)',raw:true});
+    }
+  });
+}
+async function hanabiScene(c){
+  mk(0,0,'<circle cx="690" cy="70" r="26" fill="#fff6e4" opacity=".9"/>'+
+    '<path d="M0 500 V430 L60 400 L110 430 L170 392 L230 430 L300 410 L360 440 L440 440 L500 408 L570 432 L630 396 L700 430 L760 404 L800 424 V500 Z" fill="#0f0b2b"/>'+
+    '<g fill="#ffd36b"><rect x="80" y="418" width="6" height="10"/><rect x="200" y="420" width="6" height="10"/><rect x="540" y="420" width="6" height="10"/><rect x="660" y="416" width="6" height="10"/></g>');
+  await wait(500);
+  rocket(230,170,800); await wait(800); burst(230,170,'#ff5a5a',20,100);
+  await wait(700);
+  rocket(570,140,900); await wait(900); burst(570,140,'#ffd21f',22,110);
+  await wait(600);
+  rocket(150,200,700); rocket(650,210,700); await wait(700);
+  burst(150,200,'#7ee7ff',16,80); burst(650,210,'#ff7fb8',16,80);
+  await wait(800);
+  sfx.rumble();
+  rocket(400,240,1300); await wait(1300);
+  burst(400,240,'#ffd36b',30,170);
+  bubble(610,120,'Tamaya!');
+  await wait(250);
+  await reveal(c,400,250);
+}
+
+/* ---------- pop-culture scenes: ninja, rocket launch, RPG treasure chest ---------- */
+function ninjaHtml(){
+  var D='#2b2b3a';
+  var limb=function(d){return '<path d="'+d+'" stroke="'+INK+'" stroke-width="19" stroke-linecap="round" fill="none"/><path d="'+d+'" stroke="'+D+'" stroke-width="11" stroke-linecap="round" fill="none"/>'};
+  return limb('M-20 -14 L-46 8')+limb('M20 -14 L46 -10')+limb('M-10 26 L-24 62')+limb('M10 26 L22 58')+
+    '<rect x="-22" y="-26" width="44" height="56" rx="16" fill="'+D+'" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="-21" y="8" width="42" height="9" fill="#ec3a30"/>'+
+    '<path d="M24 -62 L58 -78 L52 -62 L62 -50 L28 -56 Z" fill="#ec3a30" stroke="'+INK+'" stroke-width="3" stroke-linejoin="round"/>'+
+    '<circle cy="-50" r="27" fill="'+D+'" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="-21" y="-58" width="42" height="15" rx="7" fill="#f1d0a5"/>'+
+    '<circle cx="-8" cy="-50" r="3.2" fill="'+INK+'"/><circle cx="8" cy="-50" r="3.2" fill="'+INK+'"/>'+
+    '<rect x="-27" y="-68" width="54" height="9" rx="3" fill="#ec3a30" stroke="'+INK+'" stroke-width="3"/>';
+}
+async function ninjaScene(c){
+  mk(0,0,'<circle cx="300" cy="170" r="92" fill="#fff6e4" opacity=".92"/><circle cx="270" cy="150" r="14" fill="#e9dfc6" opacity=".7"/><circle cx="328" cy="198" r="9" fill="#e9dfc6" opacity=".7"/>'+
+    '<polygon points="0,500 0,430 110,420 170,392 260,400 540,400 640,388 700,416 800,424 800,500" fill="#0f0b2b"/>'+
+    '<path d="M250 396 Q400 366 550 396 L532 410 L268 410 Z" fill="#1d1650" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/>');
+  var nj=mk(0,0,ninjaHtml());
+  nj.style.transform='translate(-140px,400px)';
+  await wait(300);
+  sfx.whoosh();
+  await anim(nj,[{transform:'translate(-140px,400px) rotate(-20deg)'},{transform:'translate(250px,150px) rotate(180deg)',offset:.5},{transform:'translate(400px,318px) rotate(360deg)'}],{d:1200,e:'ease-in-out'});
+  sfx.boing();
+  await anim(nj,[{transform:'translate(400px,318px) scale(1.15,.85)'},{transform:'translate(400px,318px) scale(1,1)'}],{d:260});
+  await wait(300);
+  bubble(400,196,'Ninpo!');
+  sfx.squeak();
+  await wait(500);
+  for(var i=0;i<3;i++){
+    var sk=mk(440,300+i*0,'<polygon points="0,-16 4,-4 16,0 4,4 0,16 -4,4 -16,0 -4,-4" fill="#d9dcec" stroke="'+INK+'" stroke-width="2.5" stroke-linejoin="round"/><circle r="3" fill="'+INK+'"/>');
+    fire(sk,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(380px,'+((i-1)*70)+'px) rotate(1080deg)',opacity:1,offset:.9},{transform:'translate(400px,'+((i-1)*70)+'px) rotate(1200deg)',opacity:0}],{d:700,delay:i*180,e:'ease-out',raw:true});
+    sfx.whoosh();
+  }
+  await wait(900);
+  sfx.bang();
+  for(var p=0;p<16;p++)puff(400+rnd(-70,70),300+rnd(-50,50),rnd(24,42));
+  fire(nj,[{transform:'translate(400px,318px)',opacity:1},{transform:'translate(400px,318px)',opacity:0}],{d:200,raw:true});
+  sparks(400,300,10,200);
+  await wait(300);
+  await reveal(c,400,300);
+}
+
+async function rocketScene(c){
+  mk(0,0,'<rect x="0" y="392" width="800" height="108" fill="#2a2170"/><rect x="0" y="388" width="800" height="8" fill="#6a5ae0"/>'+
+    '<g stroke="#8a8fb0" stroke-width="3"><line x1="250" y1="392" x2="266" y2="150"/><line x1="266" y1="392" x2="250" y2="150"/></g>'+
+    '<rect x="250" y="150" width="16" height="242" fill="#aab3d4" stroke="'+INK+'" stroke-width="3"/><rect x="266" y="236" width="70" height="9" fill="#aab3d4" stroke="'+INK+'" stroke-width="3"/>'+
+    '<rect x="324" y="376" width="152" height="16" rx="4" fill="#6a5ae0" stroke="'+INK+'" stroke-width="4"/>');
+  var rk=mk(400,300,
+    '<g class="fl" opacity="0"><polygon points="-20,72 0,170 20,72" fill="#ff9f43" stroke="'+INK+'" stroke-width="3" stroke-linejoin="round"/><polygon points="-10,72 0,130 10,72" fill="#ffd21f"/></g>'+
+    '<path d="M-34 24 L-64 76 L-34 62 Z" fill="#ec3a30" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/><path d="M34 24 L64 76 L34 62 Z" fill="#ec3a30" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/>'+
+    '<rect x="-16" y="60" width="32" height="14" rx="3" fill="#8a8fb0" stroke="'+INK+'" stroke-width="3"/>'+
+    '<path d="M-34 62 L-34 -40 Q-34 -112 0 -142 Q34 -112 34 -40 L34 62 Z" fill="#f3f3ff" stroke="'+INK+'" stroke-width="5" stroke-linejoin="round"/>'+
+    '<path d="M-34 -40 Q-34 -112 0 -142 Q34 -112 34 -40 Q0 -54 -34 -40 Z" fill="#ec3a30" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/>'+
+    '<rect x="-34" y="26" width="68" height="14" fill="#2f72f0" stroke="'+INK+'" stroke-width="3"/>'+
+    '<circle cy="-14" r="17" fill="#7ee7ff" stroke="'+INK+'" stroke-width="4"/><path d="M-8 -22 Q-2 -28 6 -26" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>');
+  var fl=rk.querySelector('.fl'); fl.style.transformOrigin='0px 72px';
+  await wait(400);
+  shake(rk,1.5,120,.4);
+  var ns=[3,2,1];
+  for(var i=0;i<ns.length;i++){
+    var nm=mk(590,260,'<text text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="150" fill="#ffc933" stroke="'+INK+'" stroke-width="6" paint-order="stroke">'+ns[i]+'</text>');
+    fire(nm,[{transform:'scale(.3)',opacity:0},{transform:'scale(1.15)',opacity:1,offset:.25},{transform:'scale(1)',opacity:1,offset:.75},{transform:'scale(1)',opacity:0}],{d:700,raw:true});
+    sfx.ding();
+    await wait(700);
+  }
+  sfx.rumble();
+  fl.style.opacity=1;
+  fire(fl,[{transform:'scaleY(1)'},{transform:'scaleY(.7)'},{transform:'scaleY(1.1)'}],{d:120,n:Infinity,raw:true});
+  shake(rk,5,80,1);
+  var stop=every(90,function(){puff(400+rnd(-50,50),384,rnd(18,30))});
+  await wait(1100);
+  stopAnims(rk); sfx.whoosh();
+  bubble(580,150,'Liftoff!');
+  await anim(rk,[{transform:'translate(0px,0px)'},{transform:'translate(0px,-24px)',offset:.2},{transform:'translate(0px,-640px)'}],{d:1500,e:'ease-in'});
+  await wait(300);
+  stop();
+  sfx.bang();
+  sparks(400,60,16,260);
+  await reveal(c,400,60);
+}
+
+async function chestScene(c){
+  floor(424,140);
+  mk(0,0,'<g stroke="#3a2f9a" stroke-width="3" opacity=".6"><line x1="0" y1="90" x2="800" y2="90"/><line x1="0" y1="160" x2="800" y2="160"/><line x1="0" y1="230" x2="800" y2="230"/><line x1="0" y1="300" x2="800" y2="300"/><line x1="0" y1="370" x2="800" y2="370"/></g><rect x="0" y="420" width="800" height="80" fill="#2a2170"/>');
+  [170,630].forEach(function(x){
+    mk(x,250,'<rect x="-6" y="0" width="12" height="120" rx="4" fill="#8a5a3c" stroke="'+INK+'" stroke-width="3"/><rect x="-16" y="-4" width="32" height="14" rx="5" fill="#6a5ae0" stroke="'+INK+'" stroke-width="3"/>');
+    var f=mk(x,244,'<polygon points="0,-48 18,-14 10,2 -10,2 -18,-14" fill="#ff9f43" stroke="'+INK+'" stroke-width="3" stroke-linejoin="round"/><polygon points="0,-28 9,-10 0,0 -9,-10" fill="#ffd21f"/>');
+    fire(f,[{transform:'scale(1,1)'},{transform:'scale(.9,1.12)'},{transform:'scale(1.06,.94)'},{transform:'scale(1,1)'}],{d:420,n:Infinity,raw:true});
+  });
+  var chest=mk(400,330,
+    '<rect x="-90" y="0" width="180" height="90" rx="8" fill="#8a5a3c" stroke="'+INK+'" stroke-width="5"/>'+
+    '<ellipse cy="2" rx="82" ry="12" fill="#1a1230"/>'+
+    '<g stroke="#6e4426" stroke-width="3"><line x1="-88" y1="34" x2="88" y2="34"/><line x1="-88" y1="62" x2="88" y2="62"/></g>'+
+    '<rect x="-72" y="0" width="16" height="90" fill="#ffd36b" stroke="'+INK+'" stroke-width="3"/><rect x="56" y="0" width="16" height="90" fill="#ffd36b" stroke="'+INK+'" stroke-width="3"/>'+
+    '<g class="lid"><path d="M-90 0 L-90 -40 Q-90 -80 -50 -80 L50 -80 Q90 -80 90 -40 L90 0 Z" fill="#a56a45" stroke="'+INK+'" stroke-width="5" stroke-linejoin="round"/>'+
+    '<rect x="-72" y="-78" width="16" height="78" fill="#ffd36b" stroke="'+INK+'" stroke-width="3"/><rect x="56" y="-78" width="16" height="78" fill="#ffd36b" stroke="'+INK+'" stroke-width="3"/>'+
+    '<rect x="-16" y="-14" width="32" height="34" rx="6" fill="#ffd36b" stroke="'+INK+'" stroke-width="4"/><circle cy="0" r="5" fill="'+INK+'"/><rect x="-2" y="0" width="4" height="10" fill="'+INK+'"/></g>');
+  var lid=chest.querySelector('.lid');
+  var rays=mk(400,330,'<g fill="#fff6bf" opacity=".65"><polygon points="-40,0 40,0 70,-290 -70,-290"/><polygon points="-60,0 -10,0 -190,-250 -250,-190"/><polygon points="60,0 10,0 190,-250 250,-190"/></g>');
+  rays.style.opacity=0;
+  await wait(500);
+  sfx.rumble(); shake(chest,2,140,1.5);
+  sparks(400,300,4,100);
+  await wait(800);
+  sfx.squeak(); shake(chest,5,100,3);
+  sparks(400,290,6,130);
+  await wait(800);
+  sfx.squeak(); shake(chest,9,70,5);
+  await wait(550);
+  stopAnims(chest);
+  sfx.bang();
+  fire(lid,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate(-40px,-120px) rotate(-60deg)',opacity:1,offset:.4},{transform:'translate(-170px,70px) rotate(-130deg)',opacity:0}],{d:800,e:'ease-out',raw:true});
+  fire(rays,[{opacity:0},{opacity:.9}],{d:300,raw:true});
+  tone(523,.14,'square',.07,null,0); tone(659,.14,'square',.07,null,.14); tone(784,.14,'square',.07,null,.28); tone(1047,.5,'square',.08,null,.42);
+  sparks(400,300,16,240);
+  var bn=mk(400,70,'<rect x="-250" y="-30" width="500" height="60" rx="10" fill="#1d1650" stroke="#fff6e4" stroke-width="4"/><text y="10" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="30" fill="#fff6e4">You found a letter!</text>');
+  fire(bn,[{transform:'scale(.4)',opacity:0},{transform:'scale(1.06)',opacity:1,offset:.3},{transform:'scale(1)',opacity:1}],{d:300,raw:true});
+  await wait(1100);
+  fire(bn,[{transform:'scale(1)',opacity:1},{transform:'scale(1)',opacity:0}],{d:250,raw:true});
+  fire(rays,[{opacity:.9},{opacity:0}],{d:400,raw:true});
+  await wait(250);
+  await reveal(c,400,300);
+}
+
+/* ---------- scene: the pinata ---------- */
+function candyBurst(x,y,n,spread){
+  var cs=['#ff7fb8','#ffd21f','#2fc25b','#2f72f0','#ec3a30','#fff'];
+  for(var i=0;i<n;i++){
+    var col=pick(cs), dx=rnd(-spread,spread), h=rnd(60,200);
+    var html=Math.random()<.5
+      ?'<circle r="'+rnd(6,10).toFixed(0)+'" fill="'+col+'" stroke="'+INK+'" stroke-width="2"/>'
+      :'<g><rect x="-10" y="-5" width="20" height="10" rx="3" fill="'+col+'" stroke="'+INK+'" stroke-width="2"/><polygon points="-10,0 -17,-6 -17,6" fill="'+col+'" stroke="'+INK+'" stroke-width="2"/><polygon points="10,0 17,-6 17,6" fill="'+col+'" stroke="'+INK+'" stroke-width="2"/></g>';
+    var it=mk(x+rnd(-20,20),y,html);
+    fire(it,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate('+(dx*.6)+'px,'+(-h)+'px) rotate('+rnd(-300,300)+'deg)',opacity:1,offset:.4},{transform:'translate('+dx+'px,'+(440-y)+'px) rotate('+rnd(-600,600)+'deg)',opacity:.9}],{d:rnd(900,1400),e:'ease-out',raw:true});
+  }
+}
+async function pinataScene(c){
+  floor(440,200);
+  var pts=[],pts2=[],k;
+  for(k=0;k<10;k++){
+    var a=-Math.PI/2+k*Math.PI/5;
+    pts.push((Math.cos(a)*(k%2?34:80)).toFixed(1)+','+(Math.sin(a)*(k%2?34:80)).toFixed(1));
+    pts2.push((Math.cos(a)*(k%2?16:46)).toFixed(1)+','+(Math.sin(a)*(k%2?16:46)).toFixed(1));
+  }
+  mk(400,0,'<rect x="-30" y="0" width="60" height="14" rx="5" fill="#8a8fb0" stroke="'+INK+'" stroke-width="3"/>');
+  var pn=mk(400,14,
+    '<line y2="176" stroke="#e8e4ff" stroke-width="4"/>'+
+    '<g transform="translate(0 246)"><polygon points="'+pts.join(' ')+'" fill="#ff7fb8" stroke="'+INK+'" stroke-width="5" stroke-linejoin="round"/>'+
+    '<polygon points="'+pts2.join(' ')+'" fill="#ffd21f" stroke="'+INK+'" stroke-width="3" stroke-linejoin="round"/>'+
+    '<circle cx="-12" cy="-4" r="5" fill="'+INK+'"/><circle cx="12" cy="-4" r="5" fill="'+INK+'"/><path d="M-12 10 Q0 22 12 10" stroke="'+INK+'" stroke-width="4" fill="none" stroke-linecap="round"/>'+
+    '<g fill="#2f72f0" stroke="'+INK+'" stroke-width="2.5"><circle cx="0" cy="-70" r="7"/><circle cx="-68" cy="-24" r="7"/><circle cx="68" cy="-24" r="7"/><circle cx="-42" cy="62" r="7"/><circle cx="42" cy="62" r="7"/></g></g>');
+  var bat=mk(170,330,'<path d="M-14 -7 L150 -9 Q196 -14 196 0 Q196 14 150 9 L-14 7 Z" fill="#d79a52" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/><rect x="-20" y="-8" width="22" height="16" rx="5" fill="#8b5a28" stroke="'+INK+'" stroke-width="3"/>');
+  bat.style.transform='rotate(-125deg)';
+  await wait(500);
+  for(var p=0;p<3;p++){
+    sfx.whoosh();
+    await anim(bat,[{transform:'rotate(-125deg)'},{transform:'rotate(-6deg)'}],{d:240,e:'ease-in',raw:true});
+    if(p<2){
+      sfx.don(); sparks(364,300,5+p*3,70);
+      fire(bat,[{transform:'rotate(-6deg)'},{transform:'rotate(-30deg)'}],{d:300,raw:true});
+      fire(pn,[{transform:'rotate(0deg)'},{transform:'rotate('+(-(16+p*8))+'deg)'},{transform:'rotate('+(10+p*4)+'deg)'},{transform:'rotate('+(-5)+'deg)'},{transform:'rotate(0deg)'}],{d:1000});
+      candyBurst(400,300,4+p*3,90);
+      await wait(900);
+      stopAnims(bat);
+      fire(bat,[{transform:'rotate(-30deg)'},{transform:'rotate(-125deg)'}],{d:350,raw:true});
+      await wait(350);
+    }
+  }
+  sfx.bang();
+  stopAnims(pn);
+  fire(pn,[{opacity:1},{opacity:0}],{d:80,raw:true});
+  shards(400,260,'#ff7fb8',14,260); shards(400,260,'#ffd21f',10,220);
+  candyBurst(400,260,34,300);
+  sparks(400,260,10,220);
+  fire(bat,[{transform:'rotate(-6deg)'},{transform:'rotate(-70deg)'}],{d:400,raw:true});
+  await reveal(c,400,260);
+}
+
+/* ---------- scene: the fizzy geyser (mints into a soda bottle) ---------- */
+async function colaScene(c){
+  floor(440,150);
+  mk(500,430,'<ellipse rx="20" ry="9" fill="#d9dcec" stroke="'+INK+'" stroke-width="3"/>');
+  var bt=mk(400,300,
+    '<path d="M-18 -140 L18 -140 L18 -90 Q56 -60 56 -10 L56 120 Q56 140 36 140 L-36 140 Q-56 140 -56 120 L-56 -10 Q-56 -60 -18 -90 Z" fill="#6b3a1d" stroke="'+INK+'" stroke-width="5" stroke-linejoin="round"/>'+
+    '<rect x="-56" y="10" width="112" height="72" fill="#a58bff"/>'+
+    '<g fill="#fff" opacity=".85"><circle cx="-34" cy="30" r="7"/><circle cx="-8" cy="52" r="9"/><circle cx="22" cy="28" r="6"/><circle cx="38" cy="58" r="8"/></g>'+
+    '<ellipse cx="-34" cy="-30" rx="8" ry="34" fill="#fff" opacity=".25"/>'+
+    '<rect x="-21" y="-146" width="42" height="10" rx="4" fill="#3b2a1a" stroke="'+INK+'" stroke-width="3"/>');
+  var fz=every(110,function(){
+    var b=mk(400+rnd(-10,10),160,'<circle r="'+rnd(3,6).toFixed(0)+'" fill="#fff6e4" opacity=".9"/>');
+    fire(b,[{transform:'translate(0px,0px)',opacity:1},{transform:'translate('+rnd(-14,14)+'px,'+(-rnd(30,60))+'px)',opacity:0}],{d:700,raw:true});
+  });
+  await wait(500);
+  for(var i=0;i<4;i++){
+    var m=mk(400+rnd(-3,3),20,'<circle r="13" fill="#fff" stroke="'+INK+'" stroke-width="3"/><path d="M-8 -2 H8" stroke="#aab3d4" stroke-width="3" stroke-linecap="round"/>');
+    sfx.tick();
+    await anim(m,[{transform:'translate(0px,0px)'},{transform:'translate(0px,128px)'}],{d:380,e:'ease-in'});
+    m.parentNode.remove();
+    sfx.squeak();
+    await wait(260);
+  }
+  sfx.rumble(); shake(bt,3,100,1.5);
+  await wait(900);
+  shake(bt,8,70,3); sfx.rumble();
+  await wait(650);
+  fz();
+  sfx.bang();
+  var pil=mk(400,158,'<rect x="-24" y="-330" width="48" height="330" rx="24" fill="#fff6e4" opacity=".92"/><ellipse cy="-330" rx="70" ry="40" fill="#fff6e4"/>');
+  fire(pil,[{transform:'scale(1,0)'},{transform:'scale(1,1)'}],{d:300,raw:true});
+  var st2=every(40,function(){
+    var f=mk(400+rnd(-8,8),158,'<circle r="'+rnd(10,22).toFixed(0)+'" fill="#fff6e4" stroke="'+INK+'" stroke-width="2"/>');
+    var dx=rnd(-120,120);
+    fire(f,[{transform:'translate(0px,0px) scale(.6)',opacity:1},{transform:'translate('+dx+'px,'+(-rnd(180,340))+'px) scale(1)',opacity:1,offset:.5},{transform:'translate('+(dx*1.5)+'px,260px) scale(.8)',opacity:0}],{d:rnd(900,1300),e:'ease-out',raw:true});
+  });
+  stopAnims(bt); shake(bt,10,50,4);
+  sfx.whoosh();
+  await wait(1300);
+  st2(); stopAnims(bt);
+  fire(pil,[{transform:'scale(1,1)',opacity:1},{transform:'scale(1,.1)',opacity:0}],{d:300,raw:true});
+  await reveal(c,400,70);
+}
+
+/* ---------- scene: the bubblegum bubble ---------- */
+async function gumScene(c){
+  floor(486,170);
+  var face=mk(400,408,
+    '<circle r="92" fill="#f1d0a5" stroke="'+INK+'" stroke-width="5"/>'+
+    '<path d="M-88 -26 Q-80 -92 0 -98 Q80 -92 88 -26 Q54 -62 0 -58 Q-54 -62 -88 -26 Z" fill="#5b3f2e" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/>'+
+    '<g class="ey"><circle cx="-30" cy="-10" r="13" fill="#fff" stroke="'+INK+'" stroke-width="3"/><circle cx="30" cy="-10" r="13" fill="#fff" stroke="'+INK+'" stroke-width="3"/><circle cx="-28" cy="-8" r="6" fill="'+INK+'"/><circle cx="32" cy="-8" r="6" fill="'+INK+'"/></g>'+
+    '<ellipse cx="-58" cy="22" rx="13" ry="8" fill="#ffb3d1" opacity=".8"/><ellipse cx="58" cy="22" rx="13" ry="8" fill="#ffb3d1" opacity=".8"/>'+
+    '<ellipse cy="40" rx="12" ry="9" fill="#7a2a3a" stroke="'+INK+'" stroke-width="3"/>');
+  var ey=face.querySelector('.ey'); ey.style.transformOrigin='0px -10px';
+  var bub=mk(400,448,'<circle cy="-30" r="30" fill="#ff8fc7" fill-opacity=".92" stroke="'+INK+'" stroke-width="3"/><ellipse cx="-12" cy="-44" rx="8" ry="13" fill="#fff" opacity=".6" transform="rotate(25 -12 -44)"/>');
+  bub.style.transformOrigin='0px 0px';
+  fire(bub,[{transform:'scale(.3)'},{transform:'scale(.3)'}],{d:10,raw:true});
+  await wait(500);
+  var lv=[.7,1.2,1.8,2.4,3,3.5], prev=.3;
+  for(var i=0;i<lv.length;i++){
+    await anim(bub,[{transform:'scale('+prev+')'},{transform:'scale('+lv[i]+')'}],{d:420-i*40,e:'ease-out'});
+    sfx.squeak();
+    await anim(bub,[{transform:'scale('+lv[i]+')'},{transform:'scale('+(lv[i]*1.05)+','+(lv[i]*.95)+')'},{transform:'scale('+lv[i]+')'}],{d:200});
+    prev=lv[i];
+    if(i===3)fire(ey,[{transform:'scale(1)'},{transform:'scale(1.35)'}],{d:300});
+    await wait(260-i*30);
+  }
+  sfx.rumble(); shake(bub,2,70,1);
+  await anim(bub,[{transform:'scale(3.5)'},{transform:'scale(3.75)'}],{d:800,e:'ease-in'});
+  sfx.bang(); stopAnims(bub);
+  bub.parentNode.remove();
+  shards(400,330,'#ff8fc7',18,300);
+  mk(400,408,'<path d="M-70 -26 Q-40 -66 -10 -26 T50 -26" stroke="#ff8fc7" stroke-width="11" fill="none" stroke-linecap="round"/><path d="M-60 52 Q-30 20 0 52 T64 46" stroke="#ff8fc7" stroke-width="9" fill="none" stroke-linecap="round"/><ellipse cy="40" rx="30" ry="18" fill="#ff8fc7" stroke="'+INK+'" stroke-width="3"/>');
+  await reveal(c,400,300);
+}
+
+/* ---------- scene: the magician's hat ---------- */
+async function hatScene(c){
+  floor(448,190);
+  mk(0,0,'<rect x="190" y="436" width="420" height="22" rx="8" fill="#6a5ae0" stroke="'+INK+'" stroke-width="4"/>');
+  var hat=mk(400,330,
+    '<ellipse cy="100" rx="124" ry="22" fill="#2b2b3a" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="-82" y="-90" width="164" height="190" fill="#2b2b3a" stroke="'+INK+'" stroke-width="5"/>'+
+    '<rect x="-82" y="52" width="164" height="30" fill="#ec3a30" stroke="'+INK+'" stroke-width="4"/>'+
+    '<rect x="-60" y="-70" width="14" height="110" rx="6" fill="#fff" opacity=".18"/>'+
+    '<ellipse cy="-90" rx="82" ry="20" fill="#0f0b2b" stroke="'+INK+'" stroke-width="5"/>');
+  var wand=mk(640,160,'<rect x="-226" y="-5" width="226" height="10" rx="4" fill="#2b2b3a" stroke="'+INK+'" stroke-width="3"/><rect x="-226" y="-5" width="40" height="10" rx="4" fill="#fff" stroke="'+INK+'" stroke-width="3"/><rect x="-34" y="-5" width="34" height="10" rx="4" fill="#fff" stroke="'+INK+'" stroke-width="3"/>');
+  wand.style.transform='rotate(-6deg)';
+  await wait(400);
+  sfx.whoosh();
+  await anim(wand,[{transform:'translate(200px,-80px) rotate(-6deg)'},{transform:'translate(0px,0px) rotate(-10deg)'}],{d:600,e:'ease-out'});
+  for(var i=0;i<3;i++){
+    await anim(wand,[{transform:'rotate(-10deg)'},{transform:'rotate(-27deg)'},{transform:'rotate(-10deg)'}],{d:420-i*50,e:'ease-in-out'});
+    sfx.ding(); sparks(412,250,5+i*3,90);
+    shake(hat,2+i*2,100,1+i);
+    await wait(260);
+  }
+  sfx.rumble(); shake(hat,6,70,3);
+  var rb=['#ff7fb8','#ffd21f','#2fc25b','#2f72f0'];
+  await wait(600);
+  stopAnims(hat); sfx.bang();
+  for(var q=0;q<24;q++){
+    var col=pick(rb), dx=rnd(-260,260), h=rnd(160,340);
+    var it=mk(400+rnd(-40,40),240,Math.random()<.5?'<rect x="-8" y="-5" width="16" height="10" rx="2" fill="'+col+'" stroke="'+INK+'" stroke-width="1.5"/>':'<polygon points="0,-10 3,-3 10,0 3,3 0,10 -3,3 -10,0 -3,-3" fill="'+col+'" stroke="'+INK+'" stroke-width="1.5"/>');
+    fire(it,[{transform:'translate(0px,0px) rotate(0deg)',opacity:1},{transform:'translate('+(dx*.6)+'px,'+(-h)+'px) rotate('+rnd(-400,400)+'deg)',opacity:1,offset:.45},{transform:'translate('+dx+'px,'+(190)+'px) rotate('+rnd(-700,700)+'deg)',opacity:0}],{d:rnd(1000,1500),e:'ease-out',raw:true});
+  }
+  fire(wand,[{transform:'rotate(-10deg)'},{transform:'translate(200px,-80px) rotate(-6deg)'}],{d:600,raw:true});
+  await wait(300);
+  await reveal(c,400,240);
+}
+
+/* ---------- scene: the slime bucket ---------- */
+async function slimeScene(c){
+  floor(440,200);
+  var G='#7be04a';
+  var pool=mk(400,432,'<ellipse rx="200" ry="34" fill="'+G+'" stroke="'+INK+'" stroke-width="5"/><ellipse cx="-60" cy="-6" rx="60" ry="9" fill="#fff" opacity=".35"/>');
+  pool.style.transform='scale(0)';
+  var stream=mk(410,136,'<rect x="-16" y="0" width="32" height="300" fill="'+G+'"/><rect x="-16" y="0" width="6" height="300" fill="#fff" opacity=".3"/>');
+  stream.style.transformOrigin='0px 0px'; stream.style.transform='scale(1,0)';
+  var bk=mk(320,90,
+    '<path d="M-70 -60 L70 -60 L52 60 L-52 60 Z" fill="#2f72f0" stroke="'+INK+'" stroke-width="5" stroke-linejoin="round"/>'+
+    '<ellipse cy="-60" rx="70" ry="14" fill="'+G+'" stroke="'+INK+'" stroke-width="4"/>'+
+    '<path d="M-38 -16 H38" stroke="#fff" opacity=".4" stroke-width="7" stroke-linecap="round"/>');
+  shake(bk,2,120,1);
+  sfx.rumble();
+  await wait(700);
+  stopAnims(bk);
+  sfx.whoosh();
+  await anim(bk,[{transform:'rotate(0deg)'},{transform:'rotate(70deg)'}],{d:600,e:'ease-in-out'});
+  sfx.squeak();
+  fire(stream,[{transform:'scale(1,0)'},{transform:'scale(1,1)'}],{d:450,e:'ease-in'});
+  await wait(350);
+  fire(pool,[{transform:'scale(0)'},{transform:'scale(1)'}],{d:1400,e:'ease-out'});
+  var stop=every(180,function(){
+    var b=mk(400+rnd(-90,90),428,'<circle r="'+rnd(6,12).toFixed(0)+'" fill="'+G+'" stroke="'+INK+'" stroke-width="2.5"/>');
+    fire(b,[{transform:'translate(0px,0px) scale(.4)',opacity:1},{transform:'translate(0px,-30px) scale(1)',opacity:0}],{d:600,raw:true});
+  });
+  await wait(1500);
+  stop();
+  fire(stream,[{opacity:1},{opacity:0}],{d:300,raw:true});
+  fire(bk,[{transform:'rotate(70deg)'},{transform:'translate(-200px,-160px) rotate(40deg)'}],{d:500,e:'ease-in',raw:true});
+  var blob=mk(400,426,'<circle cy="-40" r="40" fill="'+G+'" fill-opacity=".95" stroke="'+INK+'" stroke-width="4"/><ellipse cx="-14" cy="-58" rx="9" ry="14" fill="#fff" opacity=".55" transform="rotate(25 -14 -58)"/>');
+  blob.style.transformOrigin='0px 0px';
+  var lv=[.6,1.4,2,2.6,3.2], prev=.1;
+  fire(blob,[{transform:'scale(.1)'},{transform:'scale(.1)'}],{d:10,raw:true});
+  for(var i=0;i<lv.length;i++){
+    await anim(blob,[{transform:'scale('+prev+')'},{transform:'scale('+lv[i]+')'}],{d:420-i*50,e:'ease-out'});
+    sfx.squeak();
+    await anim(blob,[{transform:'scale('+lv[i]+')'},{transform:'scale('+(lv[i]*1.06)+','+(lv[i]*.94)+')'},{transform:'scale('+lv[i]+')'}],{d:200});
+    prev=lv[i];
+    await wait(240-i*30);
+  }
+  sfx.rumble(); shake(blob,2,70,1);
+  await anim(blob,[{transform:'scale(3.2)'},{transform:'scale(3.5)'}],{d:700,e:'ease-in'});
+  sfx.bang(); stopAnims(blob);
+  blob.parentNode.remove();
+  shards(400,300,G,18,300);
+  for(var s=0;s<8;s++)puff(400+rnd(-100,100),300+rnd(-40,40),rnd(14,24));
+  await reveal(c,400,300);
+}
+
+/* ---------- scene: the sunrise orb ---------- */
+async function dawnScene(c){
+  var tint=mk(0,0,'<rect width="800" height="500" fill="#ff9f43"/>'); tint.style.opacity=0;
+  var rays=mk(400,330,'<g fill="#fff6bf" opacity=".35">'+Array.from({length:14},function(_,i){return '<polygon points="0,0 -20,-420 20,-420" transform="rotate('+(i*360/14)+')"/>'}).join('')+'</g>');
+  rays.style.opacity=0;
+  var sun=mk(400,330,'<circle r="150" fill="#fff6bf" opacity=".35"/><circle r="104" fill="#ffd21f" stroke="'+INK+'" stroke-width="5"/>');
+  sun.style.transform='translate(0px,150px)';
+  mk(0,0,'<polygon points="0,500 0,420 120,380 240,410 330,372 470,372 560,410 680,376 800,424 800,500" fill="#0f0b2b"/>'+
+    '<polygon points="338,500 358,376 442,376 462,500" fill="#1d1650" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/>'+
+    '<ellipse cx="400" cy="376" rx="44" ry="10" fill="#6a5ae0" stroke="'+INK+'" stroke-width="3"/>');
+  var orb=mk(400,340,'<circle r="34" fill="#fff6bf" stroke="'+INK+'" stroke-width="5"/><ellipse cx="-12" cy="-14" rx="8" ry="12" fill="#fff" opacity=".7" transform="rotate(25 -12 -14)"/><text y="12" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="40" fill="'+INK+'">?</text>');
+  sfx.rumble();
+  fire(tint,[{opacity:0},{opacity:.4}],{d:2200});
+  fire(rays,[{opacity:0},{opacity:1}],{d:2200});
+  if(!REDUCED)fire(rays,[{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{d:30000,n:Infinity,e:'linear',raw:true});
+  await anim(sun,[{transform:'translate(0px,150px)'},{transform:'translate(0px,0px)'}],{d:2200,e:'ease-out'});
+  sfx.ding();
+  await wait(300);
+  sfx.whoosh();
+  await anim(orb,[{transform:'translate(0px,0px) scale(1)'},{transform:'translate(0px,-150px) scale(1.4)'}],{d:1500,e:'ease-out'});
+  sparks(400,190,8,120);
+  sfx.squeak(); wob(orb,0,-150,1.4,3,100);
+  await wait(800);
+  sfx.squeak(); wob(orb,0,-150,1.4,8,80);
+  await wait(650);
+  stopAnims(orb); sfx.bang();
+  fire(orb,[{transform:'translate(0px,-150px) scale(1.4)',opacity:1},{transform:'translate(0px,-150px) scale(3)',opacity:0}],{d:300,raw:true});
+  sparks(400,190,16,260);
+  await reveal(c,400,190);
+}
+
+var SCENES=[balloonScene,pinataScene,colaScene,gumScene,hatScene,slimeScene,dawnScene,crateScene,heliScene,eggScene,lockerScene,taikoScene,nekoScene,washerScene,penguinScene,volcanoScene,bentoScene,pencilScene,monkeyScene,tpScene,timeScene,trainScene,sushiScene,gachaponScene,craneScene,hanabiScene,ninjaScene,rocketScene,chestScene];
+
+
+
+/* ---------- deck and rounds ---------- */
+function buildDeck(){
+  var d=[]; st.shapes.forEach(function(s){d.push({s:s})});
+  for(var i=d.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=d[i];d[i]=d[j];d[j]=t}
+  st.deck=d;
+}
+function draw(){
+  var i=st.deck.length-1;
+  if(st.last){for(var k=st.deck.length-1;k>=0;k--){if(st.deck[k].s!==st.last.s){i=k;break}}}
+  return st.deck.splice(i,1)[0];
+}
+function updateStatus(){
+  var total=st.shapes.size;
+  statusEl.textContent=st.round?('Letter '+st.round+' of '+total):(total+' letters · shout it out!');
+}
+/* ---------- guess beat: a countdown before each surprise so everyone can call the next letter ---------- */
+async function guessBeat(){
+  st.phase='guess'; st.guessSkip=false;
+  var q=mk(400,215,'<circle r="92" fill="#fff6e4" stroke="'+INK+'" stroke-width="6"/><text y="44" text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="130" fill="'+INK+'">?</text>');
+  fire(q,[{transform:'scale(1) rotate(-4deg)'},{transform:'scale(1.08) rotate(4deg)'},{transform:'scale(1) rotate(-4deg)'}],{d:1200,n:Infinity,raw:true});
+  var num=mk(400,392,'<text text-anchor="middle" font-family="Fredoka,Trebuchet MS,sans-serif" font-weight="700" font-size="64" fill="#ffc933" stroke="'+INK+'" stroke-width="3" paint-order="stroke">'+st.guessT+'</text>');
+  capEl.textContent='Guess the next letter!'; capEl.hidden=false;
+  go.textContent='Show it now';
+  for(var n=st.guessT;n>0&&!st.guessSkip;n--){
+    num.firstChild.textContent=n; sfx.tick();
+    for(var k=0;k<10&&!st.guessSkip;k++)await wait(100/st.S);
+  }
+  capEl.hidden=true; world.innerHTML=''; st.phase=null; go.textContent='Skip';
+}
+
+function nextScene(){
+  if(!st.bag.length){
+    var b=SCENES.map(function(_,i){return i});
+    for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}
+    if(b.length>1&&b[b.length-1]===st.lastScene){var t2=b[0];b[0]=b[b.length-1];b[b.length-1]=t2}
+    st.bag=b;
+  }
+  return st.bag.pop();
+}
+async function play(re){
+  if(re!==true&&!st.deck.length&&st.round>0){finish();return}
+  var id=++st.rid; cancelAll();
+  st.finished=false; st.revealed=false; st.phase=null; st.warmed=true; capEl.hidden=true;
+  var d,k;
+  if(re===true&&st.cd){d=st.cd;k=st.lastScene}
+  else{d=draw(); st.last=d; st.round++; k=nextScene(); st.lastScene=k; st.cd=d}
+  var c={s:d.s,hex:LETTER_HEX};
+  intro.hidden=true; answer.hidden=true; again.hidden=true; world.innerHTML='';
+  go.textContent='Skip'; updateStatus();
+  try{ if(re!==true&&st.guessT>0)await guessBeat(); await SCENES[k](c) }
+  catch(e){ if(id!==st.rid)return; console.error(e) }
+  updateStatus();
+}
+
+/* ---------- controls ---------- */
+var letterBtns={};
+function chip(parent,key,label,hex,set,cls){
+  var b=document.createElement('button'); b.type='button'; b.className='chip'+(cls?' '+cls:''); if(cls)letterBtns[key]=b; b.setAttribute('aria-pressed','true');
+  if(hex){var i=document.createElement('i'); i.style.background=hex; b.appendChild(i)}
+  b.appendChild(document.createTextNode(label));
+  b.addEventListener('click',function(){
+    var on=b.getAttribute('aria-pressed')==='true';
+    if(on&&set.size<=1)return;
+    if(on)set.delete(key);else set.add(key);
+    b.setAttribute('aria-pressed',on?'false':'true');
+    buildDeck(); st.round=0; st.finished=false; updateStatus();
+  });
+  parent.appendChild(b);
+}
+Object.keys(SHAPES).forEach(function(k){chip($('#shapeChips'),k,k,null,st.shapes,'ltr')});
+function setLetters(str){
+  st.shapes.clear();
+  str.split('').forEach(function(ch){st.shapes.add(ch)});
+  Object.keys(letterBtns).forEach(function(k){letterBtns[k].setAttribute('aria-pressed',st.shapes.has(k)?'true':'false')});
+  buildDeck(); st.round=0; st.finished=false; updateStatus();
+}
+[['All','abcdefghijklmnopqrstuvwxyz'],['a–h','abcdefgh'],['i–p','ijklmnop'],['q–z','qrstuvwxyz'],['Vowels','aeiou']].forEach(function(p){
+  var b=document.createElement('button'); b.type='button'; b.className='chip'; b.style.textTransform='none'; b.textContent=p[0];
+  b.addEventListener('click',function(){setLetters(p[1])});
+  $('#presetChips').appendChild(b);
+});
+
+go.addEventListener('click',start);
+$('#guess').addEventListener('change',function(e){st.guessT=parseInt(e.target.value,10)||0});
+again.addEventListener('click',function(){play(true)});
+document.addEventListener('keydown',function(e){
+  if(e.code==='Space'&&!/^(BUTTON|SELECT|INPUT|TEXTAREA)$/.test(document.activeElement.tagName)){e.preventDefault();start()}
+});
+$('#stage').addEventListener('click',function(e){
+  if(e.target.closest('button')||!st.revealed||!st.cur)return;
+  if(answer.hidden)showAnswer(st.cur);else answer.hidden=true;
+});
+$('#suspense').addEventListener('change',function(e){st.S=parseFloat(e.target.value)||1});
+$('#showWord').addEventListener('change',function(e){st.showWord=e.target.checked;if(!st.showWord)answer.hidden=true});
+$('#sound').addEventListener('change',function(e){soundOn=e.target.checked});
+$('#autoDelay').addEventListener('change',function(e){st.autoDelay=parseInt(e.target.value,10)||7});
+$('#auto').addEventListener('change',function(e){
+  st.auto=e.target.checked; clearTimeout(autoT);
+  if(st.auto&&st.revealed){var id=st.rid;autoT=setTimeout(function(){if(id===st.rid)play()},st.autoDelay*1000)}
+});
+$('#fs').addEventListener('click',function(){
+  var w=$('#stagewrap');
+  try{
+    if(document.fullscreenElement){document.exitFullscreen()}
+    else if(w.requestFullscreen){var p=w.requestFullscreen();if(p&&p.catch)p.catch(function(){})}
+  }catch(e){}
+});
+
+/* ---------- idle stage: faint stars and a row of sample stickers ---------- */
+for(var s=0;s<34;s++){
+  var c=document.createElementNS(NS,'circle');
+  c.setAttribute('cx',(Math.random()*800).toFixed(0)); c.setAttribute('cy',(Math.random()*500).toFixed(0));
+  c.setAttribute('r',(Math.random()*1.8+.6).toFixed(1)); c.setAttribute('fill','#fff'); c.setAttribute('opacity',(Math.random()*.3+.1).toFixed(2));
+  back.appendChild(c);
+}
+(function(){
+  var names=Object.keys(SHAPES).slice(0,7), cols=Object.keys(COLORS), row=$('#introRow'), html='';
+  names.forEach(function(n,i){
+    html+='<svg viewBox="-72 -72 144 144" aria-hidden="true">'+sticker(n,LETTER_HEX)+'</svg>';
+  });
+  row.innerHTML=html;
+})();
+buildDeck(); updateStatus();
+})();
+</script>
+
+
+</body></html>
